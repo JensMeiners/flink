@@ -42,5 +42,6 @@ under the License.
 		<module>flink-ml</module>
 		<module>flink-cep</module>
 		<module>flink-cep-scala</module>
+		<module>flink-r</module>
 	</modules>
 </project>
