@@ -21,14 +21,23 @@ import org.apache.flink.util.Collector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
+import java.io.Serializable;
+import java.io.IOException;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.OutputStream;
 import java.lang.reflect.Field;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.util.Iterator;
 
-import static org.apache.flink.r.api.RPlanBinder.*;
+import static org.apache.flink.r.api.RPlanBinder.FLINK_TMP_DATA_DIR;
+import static org.apache.flink.r.api.RPlanBinder.FLINK_R_DC_ID;
+import static org.apache.flink.r.api.RPlanBinder.FLINK_R_BINARY_PATH;
+import static org.apache.flink.r.api.RPlanBinder.PLANBINDER_CONFIG_BCVAR_COUNT;
+import static org.apache.flink.r.api.RPlanBinder.PLANBINDER_CONFIG_BCVAR_NAME_PREFIX;
+import static org.apache.flink.r.api.RPlanBinder.FLINK_R_PLAN_NAME;
 
 /**
  * This streamer is used by functions to send/receive data to/from an external R process.

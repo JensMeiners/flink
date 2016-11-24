@@ -15,7 +15,11 @@ package org.apache.flink.r.api.streaming.data;
 import org.apache.flink.api.java.tuple.Tuple;
 import org.apache.flink.api.java.tuple.Tuple2;
 
-import java.io.*;
+import java.io.Serializable;
+import java.io.File;
+import java.io.RandomAccessFile;
+import java.io.IOException;
+import java.io.FileNotFoundException;
 import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;

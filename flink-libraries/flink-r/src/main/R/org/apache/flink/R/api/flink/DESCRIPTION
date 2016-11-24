@@ -1,0 +1,10 @@
+Package: flink
+Type: Package
+Title: R API for Apache Flink
+Version: 0.1.0
+Author: Jens Meiners
+Maintainer: Jens Meiners <Jens.Meiners@campus.tu-berlin.de>
+Description: Run R scripts on the Apache Flink infrastructure
+License: Apache Software Foundation Licence 2.0
+Encoding: UTF-8
+LazyData: true

@@ -21,7 +21,16 @@ import java.io.InputStream;
 import java.io.Serializable;
 
 import static org.apache.flink.r.api.streaming.data.RReceiver.createTuple;
-import static org.apache.flink.python.api.streaming.util.SerializationUtils.*;
+import static org.apache.flink.python.api.streaming.util.SerializationUtils.TYPE_BOOLEAN;
+import static org.apache.flink.python.api.streaming.util.SerializationUtils.TYPE_BYTE;
+import static org.apache.flink.python.api.streaming.util.SerializationUtils.TYPE_INTEGER;
+import static org.apache.flink.python.api.streaming.util.SerializationUtils.TYPE_LONG;
+import static org.apache.flink.python.api.streaming.util.SerializationUtils.TYPE_FLOAT;
+import static org.apache.flink.python.api.streaming.util.SerializationUtils.TYPE_DOUBLE;
+import static org.apache.flink.python.api.streaming.util.SerializationUtils.TYPE_STRING;
+import static org.apache.flink.python.api.streaming.util.SerializationUtils.TYPE_BYTES;
+import static org.apache.flink.python.api.streaming.util.SerializationUtils.TYPE_NULL;
+
 
 /**
  * Instances of this class can be used to receive data from the plan process.
@@ -118,7 +127,8 @@ public class RPlanReceiver implements Serializable {
 	private class BooleanDeserializer extends Deserializer<Boolean> {
 		@Override
 		public Boolean deserialize(boolean normalized) throws IOException {
-			return input.readBoolean();
+			return input.readInt() == 1;
+			// return input.readBoolean();
 		}
 	}
 
@@ -171,7 +181,7 @@ public class RPlanReceiver implements Serializable {
 			int size = input.readInt();
 			byte[] buffer = new byte[size];
 			input.readFully(buffer);
-			return new String(buffer);
+			return new String(buffer).substring(0, size - 1);
 		}
 	}
 

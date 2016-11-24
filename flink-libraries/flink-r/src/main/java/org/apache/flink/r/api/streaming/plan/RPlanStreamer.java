@@ -19,7 +19,9 @@ import java.io.Serializable;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-import static org.apache.flink.r.api.RPlanBinder.*;
+import static org.apache.flink.r.api.RPlanBinder.FLINK_R_BINARY_PATH;
+import static org.apache.flink.r.api.RPlanBinder.FLINK_R_PLAN_NAME;
+
 
 /**
  * Generic class to exchange data during the plan phase.
@@ -58,7 +60,7 @@ public class RPlanStreamer implements Serializable {
 		} catch (IOException ex) {
 			throw new RuntimeException(FLINK_R_BINARY_PATH + " does not point to a valid R binary.");
 		}
-		process = Runtime.getRuntime().exec(FLINK_R_BINARY_PATH + " -B " + tmpPath + FLINK_R_PLAN_NAME + args);
+		process = Runtime.getRuntime().exec(FLINK_R_BINARY_PATH + " " + tmpPath + FLINK_R_PLAN_NAME + args);
 
 		new StreamPrinter(process.getInputStream()).start();
 		new StreamPrinter(process.getErrorStream()).start();

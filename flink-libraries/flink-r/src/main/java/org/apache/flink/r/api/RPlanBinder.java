@@ -8,14 +8,24 @@ import org.apache.flink.api.java.ExecutionEnvironment;
 import org.apache.flink.api.java.LocalEnvironment;
 import org.apache.flink.api.java.io.PrintingOutputFormat;
 import org.apache.flink.api.java.io.TupleCsvInputFormat;
-import org.apache.flink.api.java.operators.*;
+import org.apache.flink.api.java.operators.UdfOperator;
+import org.apache.flink.api.java.operators.UnsortedGrouping;
+import org.apache.flink.api.java.operators.SortedGrouping;
+import org.apache.flink.api.java.operators.Grouping;
+import org.apache.flink.api.java.operators.CoGroupRawOperator;
+import org.apache.flink.api.java.operators.CrossOperator;
 import org.apache.flink.api.java.tuple.Tuple;
 import org.apache.flink.api.java.typeutils.TupleTypeInfo;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.configuration.GlobalConfiguration;
 import org.apache.flink.core.fs.FileSystem;
 import org.apache.flink.core.fs.Path;
-import org.apache.flink.python.api.functions.util.*;
+import org.apache.flink.python.api.functions.util.KeyDiscarder;
+import org.apache.flink.python.api.functions.util.SerializerMap;
+import org.apache.flink.python.api.functions.util.NestedKeyDiscarder;
+import org.apache.flink.python.api.functions.util.StringDeserializerMap;
+import org.apache.flink.python.api.functions.util.StringTupleDeserializerMap;
+import org.apache.flink.python.api.functions.util.IdentityGroupReduce;
 import org.apache.flink.r.api.functions.RCoGroup;
 import org.apache.flink.r.api.functions.RMapPartition;
 import org.apache.flink.r.api.streaming.plan.RPlanStreamer;
@@ -73,12 +83,12 @@ public class RPlanBinder {
 	 * @throws Exception
 	 */
 	public static void main(String[] args) throws Exception {
-		if (args.length < 2) {
+		if (args.length < 1) {
 			System.out.println("Usage: ./bin/flinkR.[sh/bat] <pathToScript>[ <pathToPackage1>[ <pathToPackageX]][ - <parameter1>[ <parameterX>]]");
 			return;
 		}
 		RPlanBinder binder = new RPlanBinder();
-		binder.runPlan(Arrays.copyOfRange(args, 1, args.length));
+		binder.runPlan(Arrays.copyOfRange(args, 0, args.length));
 	}
 
 	public RPlanBinder() throws IOException {
@@ -90,8 +100,6 @@ public class RPlanBinder {
 			//testing
 			: new Path(FileSystem.getLocalFileSystem().getWorkingDirectory(), "src/main/R/org/apache/flink/R/api").toString();
 	}
-
-
 
 	private void runPlan(String[] args) throws Exception {
 		env = ExecutionEnvironment.getExecutionEnvironment();
@@ -154,7 +162,9 @@ public class RPlanBinder {
 	}
 
 	private static void copyFile(String path, String target, String name) throws IOException, URISyntaxException {
-		if (path.endsWith("/")) path = path.substring(0, path.length() - 1);
+		if (path.endsWith("/")) {
+			path = path.substring(0, path.length() - 1);
+		}
 		String identifier = name == null ? path.substring(path.lastIndexOf("/")) : name;
 		String tmpFilePath = target + "/" + identifier;
 		clearPath(tmpFilePath);
