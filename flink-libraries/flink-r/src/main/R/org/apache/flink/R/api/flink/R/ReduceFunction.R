@@ -3,7 +3,7 @@ ReduceFunction <- function()
   nc <- Function()
 
   nc$.configure <- function(input_file, output_file, port, info, subtask_index) {
-    nc$.configure(input_file, output_file, port, info, subtask_index)
+    #nc$.configure(input_file, output_file, port, info, subtask_index)
     if (length(info$key1) == 0) {
       nc$.run = nc$.run_all_reduce
     } else {
@@ -15,6 +15,7 @@ ReduceFunction <- function()
   nc$.run <- function() {}
 
   nc$.run_all_reduce <- function() {
+    chprint("run all reduce")
     collector <- nc$.collector
     func <- nc$reduce
     iterator <- nc$.iterator
@@ -23,7 +24,9 @@ ReduceFunction <- function()
       while (iterator$has_next()) {
         value <- iterator$nxt()
         base <- func(base, value)
+        chprint(paste("base: ", base))
       }
+
       collector$collect(base)
     }
     nc$.close()
@@ -58,4 +61,9 @@ ReduceFunction <- function()
   ## Set the name for the class
   class(nc) <- c("ReduceFunction", "Function")
   return(nc)
+}
+
+run.ReduceFunction <- function(obj) {
+  chprint("redfunc .run")
+  obj$.run()
 }

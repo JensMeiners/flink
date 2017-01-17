@@ -3,6 +3,8 @@ MapFunction <- function()
   chprint("init MapFunction")
   c <- Function()
 
+  c$.configure <- function(input_file, output_file, port, info, subtask_index) {}
+
   c$.run <- function() {
     chprint("mapfunc .run")
     chprint(paste0("MapFunction .run scope: ", class(c)))
@@ -11,7 +13,7 @@ MapFunction <- function()
       val <- c$.iterator$nxt()
       c$.collector$collect(c$map(val))
     }
-    c$.close()
+    c$.collector$.close()
   }
 
   c$collect <- function(value) {

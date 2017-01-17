@@ -1,7 +1,7 @@
 Function <- function() {
   chprint("init Function")
 
-  c <- list()
+  c <- new.env()
 
   c$.configure <- function(input_file, output_file, port, info, subtask_index) {
     chprint("Function .configure")
@@ -28,8 +28,8 @@ Function <- function() {
   }
 
   c$.close <- function() {
+    c$.collector$.close()
     if (is.null(c$.conn) == FALSE) {
-      c$.conn$send_end_signal()
       c$.conn$close()
     }
   }
@@ -41,6 +41,7 @@ Function <- function() {
   class(c) <- "Function"
   return(c)
 }
+
 
 configure <- function(obj, input_file, output_file, port, info, subtask_index) {
   UseMethod("configure", obj)
@@ -56,5 +57,6 @@ configure.Function <- function(obj, input_file, output_file, port, info, subtask
     info$chained_info$operator$.configure_chain(obj$context, obj$.collector, info$chained_info)
     obj$.collector <- info$chained_info$operator
   }
+  obj$.configure(input_file, output_file, port, info, subtask_index)
   return(obj)
 }

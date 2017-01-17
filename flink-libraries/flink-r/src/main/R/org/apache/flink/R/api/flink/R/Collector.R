@@ -15,11 +15,13 @@ PlanCollector <- function(connection)
 }
 
 Collector <- function(con, info) {
-  c <- list(
-    .con = con,
-    .serializer = NULL,
-    .as_array = is.null(info$types) == FALSE
-  )
+
+  c <- new.env()
+
+  c$.con <- con
+  c$serializer <- NULL
+  c$.as_array <- is.null(info$types) == FALSE
+
 
   c$.close <- function() {
     c$.con$send_end_signal()
@@ -37,8 +39,7 @@ Collector <- function(con, info) {
   }
 
   c$.collect <- function(value) {
-    chprint(".collect")
-    print(c)
+    chprint(paste(".collect ", value))
     serialized_value <- c$.serializer$serialize(value)
     chprint(paste("serialized value ", serialized_value))
     c$.con$write(serialized_value)

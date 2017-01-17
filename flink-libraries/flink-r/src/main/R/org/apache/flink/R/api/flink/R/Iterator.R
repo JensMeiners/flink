@@ -1,8 +1,7 @@
 PlanIterator <- function(connection)
 {
-  nc <- list(
-    connection = connection$get()
-  )
+  nc <- new.env()
+  nc$connection <- connection$get()
 
   nc$nxt <- function() {
     print("iterate plan")
@@ -20,13 +19,19 @@ TYPE_KEY_VALUE <- as.raw(62)
 TYPE_VALUE_VALUE <- as.raw(61)
 
 Iterator <- function(con, group=0) {
-  c <- list(
-    .con = con,
-    .init = TRUE,
-    .group = group,
-    .deserializer = NULL,
-    .size = 0
-  )
+  #c <- list(
+  #  .con = con,
+  #  .init = TRUE,
+  #  .group = group,
+  #  .deserializer = NULL,
+  #  .size = 0
+  #)
+  c <- new.env()
+  c$.con <- con
+  c$.init <- TRUE
+  c$.group <- group
+  c$.deserializer <- NULL
+  c$.size <- 0
 
   c$.read <- function(des_size) {
     chprint(paste0("c$.read ", des_size))

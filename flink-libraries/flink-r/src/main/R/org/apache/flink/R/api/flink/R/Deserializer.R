@@ -4,6 +4,12 @@ deserializer.desInt <- function(read) {
   chprint(paste("desInt: ", val))
   readInt(val)
 }
+deserializer.desLong <- function(read) {
+  chprint("des Long")
+  val <- read(8)
+  chprint(paste("desLong: ", val))
+  readLong(val)
+}
 
 .get_deserializer <- function(read) {
   chprint("get_deserializer")
@@ -16,9 +22,9 @@ deserializer.desInt <- function(read) {
           "34" = desBoolean,
           "30" = desDouble,
           "33" = desRaw,
-          #"D" = readDate,
+          "1f" = deserializer.desLong,
           #"t" = readTime,
-          #"3f" = desArray,
+          "3f" = .get_deserializer(read),
           #"l" = readList,
           #"e" = readEnv,
           #"s" = readStruct,
@@ -29,7 +35,8 @@ deserializer.desInt <- function(read) {
 }
 
 ArrayDeserializer <- function(deserializer) {
-  c <- list(des = deserializer)
+  c <- new.env()
+  c$des <- deserializer
   c$deserialize <- function(read) {
     read(2) # array and element type
     return(c$des(read))
@@ -58,6 +65,10 @@ KeyValueDeserializer <- function(key_des, val_des) {
 
 readInt <- function(con) {
   readBin(con, integer(), n = 4, endian = "big")
+}
+
+readLong <- function(con) {
+  readBin(con, integer(), n = 8, endian = "big")[[2]]
 }
 
 readString <- function(con) {

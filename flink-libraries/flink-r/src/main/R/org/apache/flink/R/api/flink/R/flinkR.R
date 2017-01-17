@@ -82,7 +82,7 @@ flink.collect <- function(func, local=TRUE) {
   f <- file("stdin")
   open(f)
   # waiting for std. input
-  while(length(line <- readLines(f,n=1)) > 0) {
+  if (length(line <- readLines(f,n=1)) > 0) {
     print(paste("read new line: ", line))
     # process std. input
     plan_mode <- line == "plan"
@@ -96,6 +96,7 @@ flink.collect <- function(func, local=TRUE) {
       .send_plan()
       result <- .receive_result()
       .flinkREnv$conn$close_con()
+      return(result)
     } else {
       out <- tryCatch(
         {
@@ -145,7 +146,9 @@ flink.collect <- function(func, local=TRUE) {
         })
 
     }
+    chprint("end line")
   }
+  chprint("closing script")
   close(f)
 }
 

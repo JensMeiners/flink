@@ -15,6 +15,10 @@ Connection <- function(port)
   }
 
   nc$close_con <- function() {
+
+    while(isOpen(nc$con)) {
+      readBin(nc$con, raw(), n=1)
+    }
     print("close connection")
     close(nc$con)
   }
@@ -71,7 +75,7 @@ TCPMappedFileConnection <- function(input_file, output_file, port) {
   c$port <- port
   c$con <- Connection(port)
 
-  c$.out <- list()
+  c$.out <- c()
   c$.out_size <- 0
 
   c$.input <- ""
@@ -80,16 +84,16 @@ TCPMappedFileConnection <- function(input_file, output_file, port) {
   c$.was_last <- FALSE
 
   c$close <- function() {
-    c$con$close()
+    c$con$close_con()
   }
 
   c$.out_append <- function(o) {
-    c$.out[[length(c$.out)+1]] <- o
+    c$.out <- c(c$.out, o)
   }
 
   c$write <- function(msg) {
     chprint(paste("con write ",msg))
-    len <- nchar(msg)
+    len <- length(msg)
     if (len > MAPPED_FILE_SIZE) {
       stop("Serialized object does not fit into a single buffer.")
     }
@@ -104,11 +108,15 @@ TCPMappedFileConnection <- function(input_file, output_file, port) {
   }
 
   c$.write_buffer <- function() {
-    c$.file_output_buffer[1]
-    c$.file_output_buffer[1:MAPPED_FILE_SIZE] <- paste(c$.out, sep = '', collapse = '')
-    writeInt(c$con, c$.out_size)
-    c$.out <- list()
+    #c$.file_output_buffer[1]
+    chprint(paste("c.out ", c$.out))
+    c$.file_output_buffer[1:MAPPED_FILE_SIZE] <- c$.out
+    chprint(paste(".out_size: ",c$.out_size))
+    #writeBin(as.integer(c$.out_size), c$con$get(), size=4, endian="big")
+    writeInt(c$con$get(), c$.out_size)
+    c$.out <- c()
     c$.out_size <- 0
+    recv_all(c$con$get(), 1)
   }
 
   c$read <- function(des_size) {
@@ -130,6 +138,7 @@ TCPMappedFileConnection <- function(input_file, output_file, port) {
   }
 
   c$.read_buffer <- function() {
+    #writeBin(SIGNAL_BUFFER_REQUEST, c$con$get(), size=4, endian="big")
     writeInt(c$con$get(), SIGNAL_BUFFER_REQUEST)
     c$.file_input_buffer[1]
     c$.input_offset <- 0
@@ -144,24 +153,26 @@ TCPMappedFileConnection <- function(input_file, output_file, port) {
     c$.was_last <- meta_size[5] == SIGNAL_LAST
     chprint(paste0("was last: ", c$.was_last))
     if (c$.input_size > 0) {
-      if (c$.input_size > 500) {
-        chprint(paste0("input size too big: ", c$.input_size))
-        stop("input size too big")
-      }
       c$.input <- c$.file_input_buffer[1:c$.input_size]
+      chprint(paste(".input: ", c$.input))
     }
     chprint("fin read_buffer")
   }
 
   c$send_end_signal <- function() {
     if (c$.out_size > 0) {
+      chprint("write out buffer")
       c$.write_buffer()
     }
-    writeInt(c$con, SIGNAL_FINISHED)
+    chprint("send signal finished")
+    #writeBin(SIGNAL_FINISHED, c$con$get(), size=4, endian="big")
+    writeInt(c$con$get(),SIGNAL_FINISHED)
   }
 
   c$has_next <- function(group = NA) {
-    return(c$.was_last == FALSE | c$.input_size != c$.input_offset)
+    has <- c$.was_last == FALSE | c$.input_size != c$.input_offset
+    chprint(paste("has next: ", has))
+    return(has)
   }
 
   c$reset <- function() {

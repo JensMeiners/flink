@@ -79,11 +79,11 @@ serializer.get_serializer <- function(value, c_types) {
   chprint(paste("get_serializer for ", value))
   result <- switch(type,
                    NULL = desNull,
-                   "integer" = serializer.serInt,
-                   "character" = desChar,
+                   "integer" = serializer.serLong,
+                   "character" = serializer.serChar,
                    "logical" = desLogic,
                    "double" = desDouble,
-                   "numeric" = serializer.serInt,
+                   "numeric" = serializer.serLong,
                    "raw" = desRaw,
                    #array = "3F",
                    stop(paste("Unsupported type for serialization", type)))
@@ -94,11 +94,11 @@ serializer.get_type_info <- function(value, c_types) {
   type <- serializer.getType(value)
   result <- switch(type,
                  NULL = "1A",
-                 integer = "20",
+                 integer = "1F",
                  character = "1C",
                  logical = "22",
                  double = "1E",
-                 numeric = "1D",
+                 numeric = "1F",
                  raw = "1B",
                  array = "3F",
                  stop(paste("Unsupported type for serialization", type)))
@@ -113,25 +113,30 @@ KeyValuePairSerializer <- function(value, c_types) {
 }
 
 ArraySerializer <- function(value, c_types) {
-  chprint("constr ArraySer")
+  #chprint("constr ArraySer")
   c <- list()
   c$serialize <- function(value) {
     ser_value <- c$.serializer(value)
     size <- length(ser_value) + c$.type_length
-    return(c(numToRaw(size, nBytes = 4), c$.type, ser_value))
+    return(c(rev(numToRaw(size, nBytes = 4)), c$.type, ser_value))
   }
   c$.type <- serializer.get_type_info(value, c_types)
   c$.type_length <- length(c$.type)
   c$.serializer <- serializer.get_serializer(value, c_types)
 
-  chprint("fin constr ArraySer")
+  #chprint("fin constr ArraySer")
 
   class(c) <- "ArraySerializer"
   return(c)
 }
 
-serializer.serInt <- function(value) {
-  return(numToRaw(value))
+serializer.serLong <- function(value) {
+  return(rev(numToRaw(value, nBytes = 8)))
+}
+
+serializer.serChar <- function(value) {
+  chprint(paste("serChar ",value))
+  return(charToRaw(value))
 }
 
 writeVoid <- function(con) {
