@@ -21,6 +21,8 @@ public class RPlanBinderTest extends JavaProgramTestBase {
 	@Override
 	public void testJobWithoutObjectReuse() throws Exception {}
 
+	private static String[] blacklist = {"ngram.R"};
+
 	private static List<String> findTestFiles() throws Exception {
 		List<String> files = new ArrayList<>();
 		FileSystem fs = FileSystem.getLocalFileSystem();
@@ -38,7 +40,13 @@ public class RPlanBinderTest extends JavaProgramTestBase {
 
 	@Override
 	protected void testProgram() throws Exception {
+		outerloop:
 		for (String file : findTestFiles()) {
+			for (String exept : blacklist) {
+				if (file.endsWith(exept))
+					continue outerloop;
+			}
+			// else: not on blacklist
 			RPlanBinder.main(new String[]{file});
 		}
 	}

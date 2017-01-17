@@ -83,8 +83,8 @@ public class ROperationInfo {
 			? WriteMode.OVERWRITE
 			: WriteMode.NO_OVERWRITE;
 		path = (String) streamer.getRecord();
-		frm = (Long) streamer.getRecord();
-		to = (Long) streamer.getRecord();
+		frm = ((Integer) streamer.getRecord()).longValue();
+		to = ((Integer) streamer.getRecord()).longValue();
 		setID = (Integer) streamer.getRecord(true);
 		toError = (Boolean) streamer.getRecord();
 		count = (Integer) streamer.getRecord(true);

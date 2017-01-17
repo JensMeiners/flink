@@ -107,7 +107,7 @@ public class RStreamer implements Serializable {
 			throw new RuntimeException(FLINK_R_BINARY_PATH + " does not point to a valid R binary.");
 		}
 
-		process = Runtime.getRuntime().exec(FLINK_R_BINARY_PATH + " -O -B " + planPath + planArguments);
+		process = Runtime.getRuntime().exec(FLINK_R_BINARY_PATH + " " + planPath + planArguments);
 		new StreamPrinter(process.getInputStream()).start();
 		new StreamPrinter(process.getErrorStream(), true, msg).start();
 
@@ -189,6 +189,7 @@ public class RStreamer implements Serializable {
 	}
 
 	private void sendWriteNotification(int size, boolean hasNext) throws IOException {
+		System.out.println("size = " + size + " - " + "hasNext = " + hasNext);
 		out.writeInt(size);
 		out.writeByte(hasNext ? 0 : SIGNAL_LAST);
 		out.flush();
@@ -253,6 +254,7 @@ public class RStreamer implements Serializable {
 								size = sender.sendBuffer(i, 0);
 								sendWriteNotification(size, sender.hasRemaining(0) || i.hasNext());
 							} else {
+								System.out.println("DELETE ME");
 								throw new RuntimeException("External process requested data even though none is available.");
 							}
 							break;

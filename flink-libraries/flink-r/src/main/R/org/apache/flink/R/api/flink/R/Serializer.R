@@ -5,6 +5,9 @@ serializer.write_type_info <- function(val, con) {
     for(v in val) {
       serializer.write_type_info(v, con)
     }
+  } else if (type == "array") {
+    serializer.writeType("array", con)
+    writeInt(con, length(val))
   } else {
     serializer.writeType(type, con)
   }
@@ -19,7 +22,7 @@ serializer.writeType <- function(class, con) {
                  double = 30,
                  numeric = 29,
                  raw = 33,
-                 #array = "a",
+                 array = 27,
                  #list = "l",
                  #struct = "s",
                  #jobj = "j",
@@ -39,18 +42,19 @@ serializer.getType <- function(object) {
     type
   } else {
     # Check if all elements are of same type
-    elemType <- unique(sapply(object, function(elem) { serializer.getType(elem) }))
-    if (length(elemType) <= 1) {
-      "array"
-    } else {
-      "list"
-    }
+    #elemType <- unique(sapply(object, function(elem) { serializer.getType(elem) }))
+    #if (length(elemType) <= 1) {
+    #  "array"
+    #} else {
+    #  "list"
+    #}
+    type
   }
 }
 
 serializer.write_value <- function(object, con) {
   type <- serializer.getType(object)
-  print(paste("type: ", type))
+  #print(paste("type: ", type))
   switch(type,
          NULL = writeVoid(con),
          integer = writeInt(con, object),
@@ -59,7 +63,7 @@ serializer.write_value <- function(object, con) {
          double = writeDouble(con, object),
          numeric = writeDouble(con, object),
          raw = writeRaw(con, object),
-         #array = writeArray(con, object),
+         array = writeArray(con, object),
          list = writeList(con, object),
          #struct = writeList(con, object),
          #jobj = writeJobj(con, object),
@@ -68,6 +72,66 @@ serializer.write_value <- function(object, con) {
          #POSIXlt = writeTime(con, object),
          #POSIXct = writeTime(con, object),
          stop(paste("Unsupported type for serialization", type)))
+}
+
+serializer.get_serializer <- function(value, c_types) {
+  type <- serializer.getType(value)
+  chprint(paste("get_serializer for ", value))
+  result <- switch(type,
+                   NULL = desNull,
+                   "integer" = serializer.serInt,
+                   "character" = desChar,
+                   "logical" = desLogic,
+                   "double" = desDouble,
+                   "numeric" = serializer.serInt,
+                   "raw" = desRaw,
+                   #array = "3F",
+                   stop(paste("Unsupported type for serialization", type)))
+  return(result)
+}
+
+serializer.get_type_info <- function(value, c_types) {
+  type <- serializer.getType(value)
+  result <- switch(type,
+                 NULL = "1A",
+                 integer = "20",
+                 character = "1C",
+                 logical = "22",
+                 double = "1E",
+                 numeric = "1D",
+                 raw = "1B",
+                 array = "3F",
+                 stop(paste("Unsupported type for serialization", type)))
+  return(as.raw(as.hexmode(result)))
+}
+
+KeyValuePairSerializer <- function(value, c_types) {
+  c <- list()
+
+  class(c) <- "KeyValuePairSerializer"
+  return(c)
+}
+
+ArraySerializer <- function(value, c_types) {
+  chprint("constr ArraySer")
+  c <- list()
+  c$serialize <- function(value) {
+    ser_value <- c$.serializer(value)
+    size <- length(ser_value) + c$.type_length
+    return(c(numToRaw(size, nBytes = 4), c$.type, ser_value))
+  }
+  c$.type <- serializer.get_type_info(value, c_types)
+  c$.type_length <- length(c$.type)
+  c$.serializer <- serializer.get_serializer(value, c_types)
+
+  chprint("fin constr ArraySer")
+
+  class(c) <- "ArraySerializer"
+  return(c)
+}
+
+serializer.serInt <- function(value) {
+  return(numToRaw(value))
 }
 
 writeVoid <- function(con) {
@@ -94,7 +158,7 @@ writeBoolean <- function(con, value) {
 }
 
 writeRaw <- function(con, batch) {
-  writeInt(con, length(batch))
+  #writeInt(con, length(batch))
   writeBin(batch, con, endian = "big")
 }
 
@@ -103,7 +167,6 @@ writeArray <- function(con, arr) {
   writeList(con, as.list(arr))
 }
 
-# Used to pass arrays where the elements can be of different types
 writeList <- function(con, list) {
   for (value in list) {
     #serializer.write_type_info(value, con)

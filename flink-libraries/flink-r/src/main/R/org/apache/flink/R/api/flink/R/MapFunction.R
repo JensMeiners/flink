@@ -1,32 +1,42 @@
-MapFunction <- function(input, mapFunction, local)
+MapFunction <- function()
 {
-  nc <- list(
-    .input = input,
-    .mapFunction = mapFunction,
-    .local = local
-  )
+  chprint("init MapFunction")
+  c <- Function()
 
-  nc$map <- function(operator) {
+  c$.run <- function() {
+    chprint("mapfunc .run")
+    chprint(paste0("MapFunction .run scope: ", class(c)))
+    chprint(paste0("c$.iterator - ", c$.iterator))
+    while (c$.iterator$has_next()) {
+      val <- c$.iterator$nxt()
+      c$.collector$collect(c$map(val))
+    }
+    c$.close()
+  }
+
+  c$collect <- function(value) {
+    c$.collector$collect(c$map(value))
+  }
+
+  c$map <- function(operator) {
     print("MapFunction.map()")
   }
 
-  ## Set the name for the class
-  #class(c) <- append(class(c),"MapFunction")
-  #return(c)
-  #nc <- list2env(nc)
-  class(nc) <- "MapFunction"
-  return(nc)
+  class(c) <- c("MapFunction", "Function")
+  return(c)
 }
 
-#map <- function(elObjeto, newValue)
-#{
-#  print("Calling the base map function")
-#  UseMethod("map",elObjeto)
-#}
+run <- function(obj) {
+  UseMethod("run", obj)
+}
 
-#map.MapFunction <- function(elObjeto, newValue)
-#{
-#  print("In map.MapFunction and setting the value")
-#  elObjeto$map <- newValue
-#  return(elObjeto)
-#}
+run.MapFunction <- function(obj) {
+  chprint("mapfunc .run")
+  while (obj$.iterator$has_next()) {
+    val <- obj$.iterator$nxt()
+    chprint("got next val")
+    obj$.collector$collect(obj$map(val))
+    chprint("collected val")
+  }
+  obj$.close()
+}

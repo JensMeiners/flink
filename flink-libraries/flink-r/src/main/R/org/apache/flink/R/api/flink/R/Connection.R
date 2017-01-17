@@ -23,9 +23,166 @@ Connection <- function(port)
     nc$con
   }
 
-  print("connected")
+  chprint("connected")
 
   ## Set the name for the class
   class(nc) <- "Connection"
   return(nc)
+}
+
+recv_all <- function(con, toread) {
+  initial <- readBin(con, raw(), n = toread, endian="big", signed = FALSE)
+  bytes_read = length(initial)
+  if (bytes_read == toread) {
+    return(initial)
+  } else {
+    bits <- list(initial)
+    toread <- toread - bytes_read
+    while (toread > 0) {
+      bit = readBin(con, raw(), n = toread)
+      bits[[length(bits)+1]] <- bit
+      toread = toread - length(bit)
+    }
+    return(paste(bits, sep = '', collapse = ''))
+  }
+}
+
+MAPPED_FILE_SIZE <- 1024 * 1024 * 64
+
+SIGNAL_BUFFER_REQUEST <- 0
+SIGNAL_BUFFER_REQUEST_G0 <- -3
+SIGNAL_BUFFER_REQUEST_G1 <- -4
+SIGNAL_FINISHED <- -1
+SIGNAL_LAST <- 32
+
+TCPMappedFileConnection <- function(input_file, output_file, port) {
+  library(mmap)
+  library(pack)
+
+  c <- new.env()
+  c$input <- input_file
+  c$output <- output_file
+  c$.file_input_buffer <- mmap(input_file, mode = char(), len = MAPPED_FILE_SIZE,
+                              prot = mmapFlags("PROT_READ"),
+                              flags= mmapFlags("MAP_SHARED"))
+  c$.file_output_buffer <- mmap(output_file, mode = char(), len = MAPPED_FILE_SIZE,
+                               prot = mmapFlags("PROT_WRITE"),
+                               flags= mmapFlags("MAP_SHARED"))
+  c$port <- port
+  c$con <- Connection(port)
+
+  c$.out <- list()
+  c$.out_size <- 0
+
+  c$.input <- ""
+  c$.input_offset <- 0
+  c$.input_size <- 0
+  c$.was_last <- FALSE
+
+  c$close <- function() {
+    c$con$close()
+  }
+
+  c$.out_append <- function(o) {
+    c$.out[[length(c$.out)+1]] <- o
+  }
+
+  c$write <- function(msg) {
+    chprint(paste("con write ",msg))
+    len <- nchar(msg)
+    if (len > MAPPED_FILE_SIZE) {
+      stop("Serialized object does not fit into a single buffer.")
+    }
+    tmp <- c$.out_size + len
+    if (tmp > MAPPED_FILE_SIZE) {
+      c$.write_buffer()
+      c$write(msg)
+    } else {
+      c$.out_append(msg)
+      c$.out_size <- tmp
+    }
+  }
+
+  c$.write_buffer <- function() {
+    c$.file_output_buffer[1]
+    c$.file_output_buffer[1:MAPPED_FILE_SIZE] <- paste(c$.out, sep = '', collapse = '')
+    writeInt(c$con, c$.out_size)
+    c$.out <- list()
+    c$.out_size <- 0
+  }
+
+  c$read <- function(des_size) {
+    chprint(paste0("des_size: ", des_size))
+    if (c$.input_size == c$.input_offset) {
+      c$.read_buffer()
+    }
+    old_offset <- c$.input_offset + 1
+    c$.input_offset <- c$.input_offset + des_size
+    chprint(paste0("input offset:",c$.input_offset," !<= input size:",c$.input_size))
+    if (c$.input_offset > c$.input_size) {
+      chprint("BufferUnderflowException")
+      stop("BufferUnderFlowException")
+    }
+    chprint("fin read")
+    result <- c$.input[old_offset:c$.input_offset]
+    chprint(paste("result ",old_offset,":",c$.input_offset," :: ", result))
+    return(result)
+  }
+
+  c$.read_buffer <- function() {
+    writeInt(c$con$get(), SIGNAL_BUFFER_REQUEST)
+    c$.file_input_buffer[1]
+    c$.input_offset <- 0
+    test <- rawToNum(readBin(c$con$get(), raw(), n = 4))
+    chprint(paste0("test: ", test))
+
+    meta_size <- recv_all(c$con$get(), 5)
+    chprint(meta_size)
+    chprint(meta_size[1:4])
+    c$.input_size <- readBin(meta_size[1:4], integer(), n = 4, endian = "big", signed = FALSE)
+    chprint(paste0("in_size: ", c$.input_size))
+    c$.was_last <- meta_size[5] == SIGNAL_LAST
+    chprint(paste0("was last: ", c$.was_last))
+    if (c$.input_size > 0) {
+      if (c$.input_size > 500) {
+        chprint(paste0("input size too big: ", c$.input_size))
+        stop("input size too big")
+      }
+      c$.input <- c$.file_input_buffer[1:c$.input_size]
+    }
+    chprint("fin read_buffer")
+  }
+
+  c$send_end_signal <- function() {
+    if (c$.out_size > 0) {
+      c$.write_buffer()
+    }
+    writeInt(c$con, SIGNAL_FINISHED)
+  }
+
+  c$has_next <- function(group = NA) {
+    return(c$.was_last == FALSE | c$.input_size != c$.input_offset)
+  }
+
+  c$reset <- function() {
+    c$.was_last <- FALSE
+    c$.input_size <- 0
+    c$.input_offset <- 0
+    c$.input = ""
+  }
+
+  c$read_secondary <- function(des_size) {
+    return(recv_all(c$con, des_size))
+  }
+
+  c$write_secondary <- function(data) {
+    writeBin(data, c$con, endian = "big")
+  }
+
+  c$get <- function() {
+    return(c$con$get())
+  }
+
+  class(c) <- "TCPMappedFileConnection"
+  return(c)
 }
