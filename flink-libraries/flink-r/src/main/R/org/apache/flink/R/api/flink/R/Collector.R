@@ -30,7 +30,7 @@ Collector <- function(con, info) {
   }
 
   c$collect <- function(value) {
-    chprint(paste("collect identifier:",c$.info$identifier))
+    chprint(paste("collect identifier:",c$.info$identifier," - ", value))
     chprint(paste("as type:",c$.info$types))
     if (c$.as_array) {
       c$.serializer <- ArraySerializer(value)

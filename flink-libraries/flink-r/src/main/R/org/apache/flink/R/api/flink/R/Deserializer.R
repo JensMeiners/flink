@@ -18,11 +18,19 @@ deserializer.desString <- function(read) {
   return(val)
 }
 
+
 .get_deserializer <- function(read) {
+  library(pack)
   chprint("get_deserializer")
   #type <- as.integer(readBin(con, "raw", n = 1L))
   type <- read(1)
   chprint(paste("des type: ", type))
+  
+  ord <- rawToNum(type)
+  if (ord < 26) {
+    return(deserializer.desList(ord, read)$deserialize)
+  }
+  
   switch (toString(type),
           "20" = deserializer.desInt,
           "28" = deserializer.desString,
@@ -40,6 +48,33 @@ deserializer.desString <- function(read) {
           #"j" = getJobj,
           stop(paste("Type not supported for deserialization: ", type)))
 
+}
+
+deserializer.desList <- function(num, read) {
+  chprint("deserialize List")
+  c <- new.env()
+  c$deserializer <- list()
+  for (v in 1:num){
+    c$deserializer[[length(c$deserializer)+1]] <- .get_deserializer(read)
+  }
+  c$.skip <- 0
+  c$deserialize <- function(read) {
+    chprint(paste("listDeser"))
+    if (c$.skip > 0) {
+      read(c$.skip) # skip type info
+    } else {
+      c$.skip <- length(c$deserializer)
+    }
+    i <- 1
+    result <- c()
+    for (i in 1:length(c$deserializer)) {
+      result <- append(result, c$deserializer[[i]](read))
+      i <- i+1
+    }
+    chprint(paste("result", result))
+    return(result)
+  }
+  return(c)
 }
 
 ArrayDeserializer <- function(deserializer) {

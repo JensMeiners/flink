@@ -85,7 +85,7 @@ serializer.get_serializer <- function(value, c_types) {
                    "double" = desDouble,
                    "numeric" = serializer.serLong,
                    "raw" = desRaw,
-                   #array = "3F",
+                   "list" = serializer.serList(value)$serialize,
                    stop(paste("Unsupported type for serialization", type)))
   return(result)
 }
@@ -101,8 +101,17 @@ serializer.get_type_info <- function(value, c_types) {
                  numeric = "1F",
                  raw = "1B",
                  array = "3F",
+                 list = return(serializer.get_type_info_list(value)),
                  stop(paste("Unsupported type for serialization", type)))
   return(as.raw(as.hexmode(result)))
+}
+
+serializer.get_type_info_list <- function(value) {
+  types <- c()
+  for (v in value) {
+    types <- append(types, serializer.get_type_info(v))
+  }
+  return(c(serializer.serInt(length(value))[4],types))
 }
 
 KeyValuePairSerializer <- function(value, c_types) {
@@ -160,14 +169,39 @@ ArraySerializer <- function(value, c_types) {
   return(c)
 }
 
+serializer.serList <- function(value) {
+  c <- new.env()
+  c$serializer <- list()
+  for (v in value){
+    c$serializer[[length(c$serializer)+1]] <- serializer.get_serializer(v, NULL)
+  }
+  c$serialize <- function(value) {
+    chprint(paste("listSer:", value))
+    i <- 1
+    result <- c()
+    for (v in value) {
+      chprint(paste("val:",v))
+      result <- append(result, c$serializer[[i]](v))
+      i <- i+1
+    }
+    chprint(paste("result", result))
+    return(result)
+  }
+  return(c)
+}
+
 serializer.serLong <- function(value) {
   return(rev(numToRaw(value, nBytes = 8)))
 }
 
+serializer.serInt <- function(value) {
+  return(rev(numToRaw(value, nBytes = 4)))
+}
+
 serializer.serChar <- function(value) {
-  chprint(paste("serChar ",value))
-  utfVal <- enc2utf8(paste("   ", value))
-  return(charToRaw(utfVal))
+  chprint(paste("serChar:",value))
+  utfVal <- enc2utf8(value)
+  return(c(serializer.serInt(nchar(utfVal)), charToRaw(utfVal)))
 }
 
 writeVoid <- function(con) {

@@ -8,7 +8,6 @@ MapFunction <- function()
   c$.run <- function() {
     chprint("mapfunc .run")
     chprint(paste0("MapFunction .run scope: ", class(c)))
-    chprint(paste0("c$.iterator - ", c$.iterator))
     while (c$.iterator$has_next()) {
       val <- c$.iterator$nxt()
       c$.collector$collect(c$map(val))

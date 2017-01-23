@@ -45,6 +45,44 @@ DataSet <- function(info) {
     .sets_append(child)
     return(child_set)
   }
+  
+  nc$filter <- function(operator) {
+    if (is.function(operator)) {
+      f <- operator
+      operator <- FilterFunction()
+      operator$filter <- f
+    }
+    
+    child <- newOperationInfo()
+    child_set <- DataSet(child)
+    child$identifier <- Identifier.FILTER
+    child$parent <- nc$info
+    child$operator <- operator
+    child$types <- createArrayTypeInfo()
+    child$name <- "RFilter"
+    nc$info$children_append(child)
+    .sets_append(child)
+    return(child_set)
+  }
+  
+  nc$flatmap <- function(operator) {
+    if (is.function(operator)) {
+      f <- operator
+      operator <- FlatmapFunction()
+      operator$flatmap <- f
+    }
+    
+    child <- newOperationInfo()
+    child_set <- DataSet(child)
+    child$identifier <- Identifier.FLATMAP
+    child$parent <- nc$info
+    child$operator <- operator
+    child$types <- createArrayTypeInfo()
+    child$name <- "RFlatMap"
+    nc$info$children_append(child)
+    .sets_append(child)
+    return(child_set)
+  }
 
   nc$.sys_output <- function(to_error = FALSE) {
     child <- newOperationInfo()

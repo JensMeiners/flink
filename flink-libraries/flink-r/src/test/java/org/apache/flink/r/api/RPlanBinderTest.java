@@ -21,7 +21,7 @@ public class RPlanBinderTest extends JavaProgramTestBase {
 	@Override
 	public void testJobWithoutObjectReuse() throws Exception {}
 
-	private static String[] blacklist = {"ngram.R", "TestMain.R"};
+	private static String[] blacklist = {"ngram.R", "TestMain.R", "count_local.R", "filter.R"};
 
 	private static List<String> findTestFiles() throws Exception {
 		List<String> files = new ArrayList<>();

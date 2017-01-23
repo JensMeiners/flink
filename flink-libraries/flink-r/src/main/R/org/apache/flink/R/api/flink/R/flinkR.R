@@ -65,6 +65,16 @@ flink.reduce <- function(mapFunction, reduceFunction, composition = TRUE) {
   mapFunction$reduce(reduceFunction)
 }
 
+flink.filter <- function(input, filterFunction) {
+  data <- flink.from_elements(input)
+  data$filter(filterFunction)
+}
+
+flink.flatmap <- function(input, flatmapFunction) {
+  data <- flink.from_elements(input)
+  data$flatmap(flatmapFunction)
+}
+
 .flinkREnv$runID <- sample(10:99, 1)
 
 chprint <- function(s) {
