@@ -21,6 +21,8 @@ Collector <- function(con, info) {
   c$.con <- con
   c$serializer <- NULL
   c$.as_array <- is.null(info$types) == FALSE
+  
+  c$.info <- info
 
 
   c$.close <- function() {
@@ -28,10 +30,14 @@ Collector <- function(con, info) {
   }
 
   c$collect <- function(value) {
+    chprint(paste("collect identifier:",c$.info$identifier))
+    chprint(paste("as type:",c$.info$types))
     if (c$.as_array) {
       c$.serializer <- ArraySerializer(value)
+      chprint("ArraySer")
     } else {
       c$.serializer <- KeyValuePairSerializer(value)
+      chprint("KeyValSer")
     }
     chprint("initialized Serializer")
     c$collect <- c$.collect

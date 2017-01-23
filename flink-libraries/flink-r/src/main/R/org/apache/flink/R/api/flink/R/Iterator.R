@@ -1,7 +1,7 @@
 PlanIterator <- function(connection)
 {
   nc <- new.env()
-  nc$connection <- connection$get()
+  nc$connection <- connection
 
   nc$nxt <- function() {
     print("iterate plan")

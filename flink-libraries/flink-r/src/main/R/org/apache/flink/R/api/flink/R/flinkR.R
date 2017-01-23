@@ -20,11 +20,13 @@ increment_counter <- function() {
 # specials
 .flinkREnv$broadcast <- list()
 
-flink.setParallelism <- function(parallalism) {
-  print(paste0("set parallelism: ", parallalism))
-  .flinkREnv$dop <- as.integer(parallalism)
+flink.setParallelism <- function(parallelism) {
+  print(paste0("set parallelism: ", parallelism))
+  .flinkREnv$dop <- as.integer(parallelism)
 }
-
+flink.parallelism <- function(parallelism) {
+  flink.setParallelism(parallelism)
+}
 flink.getParallelism <- function() {
   .flinkREnv$dop
 }
@@ -74,7 +76,7 @@ flink.collect <- function(func, local=TRUE) {
 
   chprint("collect")
   if (length(.flinkREnv$sinks) == 0) {
-    func$output()
+    func$csv_output()
   }
   # Triggers program execution
   .flinkREnv$local_mode <- local
@@ -95,6 +97,7 @@ flink.collect <- function(func, local=TRUE) {
       .flinkREnv$coll <- PlanCollector(.flinkREnv$conn)
       .send_plan()
       result <- .receive_result()
+      chprint(paste("net_runlength:", result$net_runtime))
       .flinkREnv$conn$close_con()
       return(result)
     } else {

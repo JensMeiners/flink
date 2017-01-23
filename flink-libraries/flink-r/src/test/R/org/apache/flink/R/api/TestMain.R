@@ -5,7 +5,7 @@ library(flink)
 print("found flink library")
 
 ## Flink connection - setup the number of threads
-x <- flink.setParallelism(1)
+x <- flink.setParallelism(4)
 
 if (4 == x) {
     print("OK")
@@ -23,7 +23,7 @@ reduceFunction <- function(x, y) {
     x + y
 }
 
-input <- 1:10
+input <- 1:100
 
 start <- proc.time()
 
@@ -33,4 +33,4 @@ result <- flink.collect(f)
 
 proc.time() - start
 
-print(result)
+print(paste(">>>",result))

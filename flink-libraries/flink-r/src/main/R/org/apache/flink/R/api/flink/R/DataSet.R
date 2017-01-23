@@ -46,7 +46,7 @@ DataSet <- function(info) {
     return(child_set)
   }
 
-  nc$.output <- function(to_error = FALSE) {
+  nc$.sys_output <- function(to_error = FALSE) {
     child <- newOperationInfo()
     child_set <- DataSink(child)
     child$identifier <- Identifier.SINK_PRINT
@@ -58,8 +58,27 @@ DataSet <- function(info) {
     return(child_set)
   }
 
-  nc$output <- function(to_error = FALSE) {
-    return(nc$map(Stringify())$.output(to_error))
+  nc$sys_output <- function(to_error = FALSE) {
+    return(nc$map(Stringify())$.sys_output(to_error))
+  }
+  
+  nc$.csv_output <- function(path="./output.txt", line_delimiter="\n", field_delimiter=",", write_mode=WriteMode.OVERWRITE) {
+    child <- newOperationInfo()
+    child_set <- DataSink(child)
+    child$identifier <- Identifier.SINK_CSV
+    child$parent <- nc$info
+    child$path <- path
+    child$delimiter_line <- line_delimiter
+    child$delimiter_field <- field_delimiter
+    child$write_mode <- write_mode
+    nc$info$parallelism <- child$parallelism
+    nc$info$sinks_append(child)
+    .sinks_append(child)
+    return(child_set)
+  }
+  
+  nc$csv_output <- function(path="./output.txt", line_delimiter="\n", field_delimiter=",", write_mode=WriteMode.OVERWRITE) {
+    return(nc$map(Stringify())$.csv_output(path, line_delimiter, field_delimiter, write_mode))
   }
 
   class(nc) <- "DataSet"

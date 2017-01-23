@@ -11,6 +11,13 @@ deserializer.desLong <- function(read) {
   readLong(val)
 }
 
+deserializer.desString <- function(read) {
+  chprint("des String")
+  size <- readInt(read(4))
+  val <- enc2utf8(rawToChar(read(size)))
+  return(val)
+}
+
 .get_deserializer <- function(read) {
   chprint("get_deserializer")
   #type <- as.integer(readBin(con, "raw", n = 1L))
@@ -18,7 +25,8 @@ deserializer.desLong <- function(read) {
   chprint(paste("des type: ", type))
   switch (toString(type),
           "20" = deserializer.desInt,
-          "28" = desString,
+          "28" = deserializer.desString,
+          "1c" = deserializer.desString,
           "34" = desBoolean,
           "30" = desDouble,
           "33" = desRaw,

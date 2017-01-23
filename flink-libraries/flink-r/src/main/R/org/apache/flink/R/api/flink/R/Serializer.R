@@ -106,7 +106,37 @@ serializer.get_type_info <- function(value, c_types) {
 }
 
 KeyValuePairSerializer <- function(value, c_types) {
-  c <- list()
+  c <- new.env()
+  c$.typeK <- list()
+  c$.serializerK <- list()
+  for (key in value[[0]]){
+    c$.typeK[[length(c$.typeK)+1]] <- serializer.get_type_info(key, c_types)
+    c$.serializerK[[length(c$.serializerK)+1]] <- serializer.get_serializer(key, c_types)
+  }
+  c$.typeV <- serializer.get_type_info(value[[1]], c_types)
+  c$.serializerV <- serializer.get_serializer(value[[1]], c_types)
+  c$.typeK_length <- list()
+  for (type in c$.typeK) {
+    c$.typeK_length[[length(c$.typeK_length)+1]] <- length(c$.typeK)
+  }
+  c$.typeV_length <- length(c$.typeV)
+
+  c$serialize <- function(value) {
+    chprint("KeyVal Serializer")
+    size <- length(value[[0]])
+    bits <- list(rev(numToRaw(size, nBytes = 4))[4])
+    for (i in 1:length(x)) {
+      x <- c$.serializerK[[i]](value[0][i])
+      bits[[length(bits)+1]] <- rev(numToRaw(length(x) + c$.typeK_length[[i]], nBytes=4))
+      bits[[length(bits)+1]] <- c$.typeK[[i]]
+      bits[[length(bits)+1]] <- x
+    }
+    v <- c$.serializerV(value[[1]])
+    bits[[length(bits)+1]] <- rev(numToRaw(length(v) + c$.typeV_length, nBytes=4))
+    bits[[length(bits)+1]] <- c$.typeV
+    bits[[length(bits)+1]] <- v
+    return(bits)
+  }
 
   class(c) <- "KeyValuePairSerializer"
   return(c)
@@ -114,7 +144,7 @@ KeyValuePairSerializer <- function(value, c_types) {
 
 ArraySerializer <- function(value, c_types) {
   #chprint("constr ArraySer")
-  c <- list()
+  c <- new.env()
   c$serialize <- function(value) {
     ser_value <- c$.serializer(value)
     size <- length(ser_value) + c$.type_length
@@ -136,7 +166,8 @@ serializer.serLong <- function(value) {
 
 serializer.serChar <- function(value) {
   chprint(paste("serChar ",value))
-  return(charToRaw(value))
+  utfVal <- enc2utf8(paste("   ", value))
+  return(charToRaw(utfVal))
 }
 
 writeVoid <- function(con) {

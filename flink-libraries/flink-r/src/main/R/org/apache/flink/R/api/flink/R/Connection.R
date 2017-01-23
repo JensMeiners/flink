@@ -1,17 +1,17 @@
 Connection <- function(port)
 {
-  nc <- list(
-    port = port,
-    con = socketConnection(host="localhost", port = port, blocking=TRUE,
+  nc <- new.env()
+  nc$port <- port
+  nc$con  <- socketConnection(host="localhost", port = port, blocking=TRUE,
                             server=FALSE, open="wb")
-  )
+  
 
   nc$write <- function(msg) {
     writeChar(msg, nc$con)
   }
 
   nc$read <- function(size) {
-    readBin(nc$con, "raw", n = size)
+    readBin(nc$con, raw(), n = size)
   }
 
   nc$close_con <- function() {
