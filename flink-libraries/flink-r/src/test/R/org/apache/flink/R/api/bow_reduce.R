@@ -8,6 +8,7 @@ input <- c("adf asfd asdf", "abc def", "asdf asdf asdf asdf asdf")
 #input <- flink.distribute(text)
 
 nGramCount <- function(text) {
+    chprint("ngram Count")
     splits <- strsplit(text, " ")[[1]]
     numSplits <- length(splits)
 
@@ -30,17 +31,14 @@ nGramCount <- function(text) {
 }
 
 countFunc <- function(a, b) {
-    sum <- a[[2]] + b[[2]]
-    return(list(a[[1]], sum))
+    list(a[[1]], a[[2]]+b[[2]])
 }
 
-
 ngrams <- flink.flatmap(input, nGramCount)
-res <- flink.collect(ngrams, TRUE)
+#res <- flink.collect(ngrams, TRUE)
 
-#groups <- flink.groupBy(ngrams, 0)
+counts <- flink.groupBy(ngrams, 0)$reduce(countFunc)
 
-#counts <- flink.reduce(groups, countFunc)
 
-#res <- flink.collect(counts, TRUE)
+res <- flink.collect(counts, TRUE)
 print(res)

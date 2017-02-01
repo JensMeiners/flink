@@ -1,8 +1,8 @@
 DataSet <- function(info) {
 
-  nc <- list(
-    info = info
-  )
+  nc <- new.env()
+  nc$info <- info
+  
   nc$info$id <- as.integer(.flinkREnv$counter)
   increment_counter()
 
@@ -82,6 +82,56 @@ DataSet <- function(info) {
     nc$info$children_append(child)
     .sets_append(child)
     return(child_set)
+  }
+  
+  nc$groupBy <- function(key) {
+    if (is.numeric(key) & !is.na(key)) {
+      key <- list(key)
+    }
+    mapping <- function(x) {
+      print(paste("MAPPINGin: ", x))
+      return(x)
+    }
+    nc$map(mapping)$.group_by(key)
+    #nc$.group_by(key)
+  }
+  
+  nc$.group_by <- function(key) {
+    chprint(paste("DataSet groupby key",key))
+    child <- newOperationInfo()
+    child_chain <- list()
+    child_set <- UnsortedGrouping(child, child_chain)
+    child$identifier <- Identifier.GROUP
+    child$parent <- nc$info
+    child$keys <- key
+    child_set$.child_chain[[1]] <- child
+    nc$info$children_append(child)
+    .sets_append(child)
+    return(child_set)
+  }
+  
+  nc$reduce_group <- function(operator, combinable=FALSE) {
+    child <- nc$.reduce_group(operator, combinable)
+    child_set <- OperatorSet(child)
+    nc$info$children_append(child)
+    .sets_append(child)
+    return(child_set)
+  }
+  
+  nc$.reduce_group <- function(operator, combinable=FALSE) {
+    if (is.function(operator)) {
+      f <- operator
+      operator <- GroupReduceFunction()
+      operator$reduce <- f
+    }
+    
+    child <- newOperationInfo()
+    child$identifier <- Identifier.GROUPREDUCE
+    child$parent <- nc$info
+    child$operator <- operator
+    child$types <- createArrayTypeInfo()
+    child$name <- "RGroupReduce"
+    return(child)
   }
 
   nc$.sys_output <- function(to_error = FALSE) {

@@ -1,13 +1,15 @@
 serializer.write_type_info <- function(val, con) {
   type <- serializer.getType(val)
+  chprint(paste("type",type,"val",val))
   if (type == "list") {
+    chprint(paste("list len", length(val)))
     writeBin(as.raw(length(val)), con)
     for(v in val) {
       serializer.write_type_info(v, con)
     }
   } else if (type == "array") {
     serializer.writeType("array", con)
-    writeInt(con, length(val))
+    #writeInt(con, length(val))
   } else {
     serializer.writeType(type, con)
   }
@@ -23,6 +25,7 @@ serializer.writeType <- function(class, con) {
                  numeric = 29,
                  raw = 33,
                  array = 27,
+                 matrix = 27,
                  #list = "l",
                  #struct = "s",
                  #jobj = "j",
@@ -65,6 +68,7 @@ serializer.write_value <- function(object, con) {
          raw = writeRaw(con, object),
          array = writeArray(con, object),
          list = writeList(con, object),
+         matrix = writeArray(con, object),
          #struct = writeList(con, object),
          #jobj = writeJobj(con, object),
          #environment = writeEnv(con, object),
@@ -76,7 +80,7 @@ serializer.write_value <- function(object, con) {
 
 serializer.get_serializer <- function(value, c_types) {
   type <- serializer.getType(value)
-  chprint(paste("get_serializer for ", value))
+  chprint(paste("get_serializer for ", value, "type",type))
   result <- switch(type,
                    NULL = desNull,
                    "integer" = serializer.serLong,
@@ -87,6 +91,7 @@ serializer.get_serializer <- function(value, c_types) {
                    "raw" = desRaw,
                    "list" = serializer.serList(value)$serialize,
                    stop(paste("Unsupported type for serialization", type)))
+  #chprint(paste("got serializer result",result))
   return(result)
 }
 
@@ -118,12 +123,12 @@ KeyValuePairSerializer <- function(value, c_types) {
   c <- new.env()
   c$.typeK <- list()
   c$.serializerK <- list()
-  for (key in value[[0]]){
+  for (key in value[[1]]){
     c$.typeK[[length(c$.typeK)+1]] <- serializer.get_type_info(key, c_types)
     c$.serializerK[[length(c$.serializerK)+1]] <- serializer.get_serializer(key, c_types)
   }
-  c$.typeV <- serializer.get_type_info(value[[1]], c_types)
-  c$.serializerV <- serializer.get_serializer(value[[1]], c_types)
+  c$.typeV <- serializer.get_type_info(value[[2]], c_types)
+  c$.serializerV <- serializer.get_serializer(value[[2]], c_types)
   c$.typeK_length <- list()
   for (type in c$.typeK) {
     c$.typeK_length[[length(c$.typeK_length)+1]] <- length(c$.typeK)
@@ -132,15 +137,15 @@ KeyValuePairSerializer <- function(value, c_types) {
 
   c$serialize <- function(value) {
     chprint("KeyVal Serializer")
-    size <- length(value[[0]])
+    size <- length(value[[1]])
     bits <- list(rev(numToRaw(size, nBytes = 4))[4])
-    for (i in 1:length(x)) {
-      x <- c$.serializerK[[i]](value[0][i])
+    for (i in 1:size) {
+      x <- c$.serializerK[[i]](value[[1]][i])
       bits[[length(bits)+1]] <- rev(numToRaw(length(x) + c$.typeK_length[[i]], nBytes=4))
       bits[[length(bits)+1]] <- c$.typeK[[i]]
       bits[[length(bits)+1]] <- x
     }
-    v <- c$.serializerV(value[[1]])
+    v <- c$.serializerV(value[[2]])
     bits[[length(bits)+1]] <- rev(numToRaw(length(v) + c$.typeV_length, nBytes=4))
     bits[[length(bits)+1]] <- c$.typeV
     bits[[length(bits)+1]] <- v
@@ -232,9 +237,22 @@ writeRaw <- function(con, batch) {
   writeBin(batch, con, endian = "big")
 }
 
+int_to_uint <- function (x, adjustment=2^32) {
+  x <- as.numeric(x)
+  signs <- sign(x)
+  x[signs < 0] <- x[signs < 0] + adjustment
+  x
+}
 
 writeArray <- function(con, arr) {
-  writeList(con, as.list(arr))
+  #size <- length(arr)
+  writeInt(con, length(arr))
+  #writeBin(size, con, size=4, useBytes = TRUE, endian = "big")
+  chprint(paste("arr:",arr,"class",class(arr)))
+  for (val in arr) {
+    chprint(paste("val:",class(val)))
+    writeBin(val, con, size=1, useBytes = TRUE)
+  }
 }
 
 writeList <- function(con, list) {

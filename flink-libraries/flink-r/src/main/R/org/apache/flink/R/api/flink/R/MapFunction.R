@@ -35,7 +35,7 @@ run.MapFunction <- function(obj) {
   chprint("mapfunc .run")
   while (obj$.iterator$has_next()) {
     val <- obj$.iterator$nxt()
-    chprint("got next val")
+    chprint(paste("got next val", val, "class", class(val)))
     obj$.collector$collect(obj$map(val))
     chprint("collected val")
   }

@@ -75,13 +75,32 @@ flink.flatmap <- function(input, flatmapFunction) {
   data$flatmap(flatmapFunction)
 }
 
+flink.groupBy <- function(dataset, key){
+  chprint(paste("groupBy key",key))
+  dataset$groupBy(key)
+}
+
+#flink.group_reduce <- function(grouping, reduce_function) {
+#  grouping$reduce_group(reduce_function, FALSE)
+#}
+
 .flinkREnv$runID <- sample(10:99, 1)
 
 chprint <- function(s) {
   print(paste0("[",.flinkREnv$runID,"] ",s))
 }
 
+# USED ONLY FOR DEBUGGING
 flink.collect <- function(func, local=TRUE) {
+  result <- tryCatch({
+    .flink.collect(func, local)
+  }, error = function(err) {
+    chprint(paste("ERROR:  ",err))
+  })
+  return(result)
+}
+
+.flink.collect <- function(func, local=TRUE) {
   .flinkREnv$runID <- sample(100:999, 1)
 
   chprint("collect")
@@ -90,7 +109,13 @@ flink.collect <- function(func, local=TRUE) {
   }
   # Triggers program execution
   .flinkREnv$local_mode <- local
-  # TODO: optimize plan
+  # optimize plan
+  .optimize_plan()
+  chprint("optimized plan:")
+  for (set in .flinkREnv$sets) {
+    chprint(paste("operator", set$name, "identifier", set$identifier))
+  }
+  # start plan mode
   f <- file("stdin")
   open(f)
   # waiting for std. input
@@ -129,6 +154,7 @@ flink.collect <- function(func, local=TRUE) {
               operator <- set$operator
             }
           }
+          chprint(paste0("ACTIVE SET:", used_set$name, "(", used_set$id,")"))
           chprint(paste0("operator .configure: ", class(operator)))
           #operator$.configure(input_path, output_path, port, used_set, subtask_index)
           operator <- configure(operator, input_path, output_path, port, used_set, subtask_index)
@@ -165,6 +191,94 @@ flink.collect <- function(func, local=TRUE) {
   close(f)
 }
 
+#############################################
+
+
+.optimize_plan <- function(){
+  .find_chains()
+}
+
+.find_chains <- function() {
+  chainable <- list(Identifier.MAP, Identifier.FILTER, Identifier.FLATMAP)
+  dual_input <- list(Identifier.JOIN, Identifier.JOINH, Identifier.JOINT, Identifier.CROSS, Identifier.CROSSH, Identifier.CROSST, Identifier.COGROUP, Identifier.UNION)
+  x <- length(.flinkREnv$sets)
+  while (x > 0) {
+    # CHAIN(parent -> child) -> grand_child
+    # for all intents and purposes the child set ceases to exist; it is merged into the parent
+    child <- .flinkREnv$sets[[x]]
+    child_type <- child$identifier
+    chprint(paste("optimize", child_type))
+    if (child_type %in% chainable) {
+      chprint("is chainable")
+      parent <- child$parent
+      # we can only chain to an actual python udf (=> operator is not None)
+      # we may only chain if the parent has only 1 child
+      # we may only chain if the parent is not used as a broadcast variable
+      # we may only chain if the parent does not use the child as a broadcast variable
+      if (is.null(parent$operator) == FALSE 
+          & length(parent$children) == 1 
+          & length(parent$sinks) == 0 
+          & (parent$id %in% sapply(.flinkREnv$broadcast, function(x) x$id)) == FALSE 
+          & (child$id %in% sapply(parent$bcvars, function(x) x$id)) == FALSE) {
+        parent$chained_info <- child
+        parent$name <- paste(parent$name,"->",child$name)
+        chprint(paste("child.types:", child$types))
+        parent$types <- child$types
+        # grand_children now belong to the parent
+        for (grand_child in child$children) {
+          chprint(paste("grand_child", grand_child$id))
+          # dual_input operations have 2 parents; hence we have to change the correct one
+          if (grand_child$identifier %in% dual_input) {
+            if (grand_child$parent$id == child$id) {
+              grand_child$parent <- parent
+            } else {
+              grand_child$other <- parent
+            }
+          } else {
+            grand_child$parent <- parent
+          }
+          parent$children[[length(parent$children) + 1]] <- grand_child
+        }
+        # if child is used as a broadcast variable the parent must now be used instead
+        chprint("check broadcasts")
+        for (s in .flinkREnv$sets) {
+          if (child$id %in% sapply(s$bcvars, function(x) x$id)) {
+            s$bcvars <- s$bcvars[sapply(s$bcvars, function(x) x$id) != child$id]
+            s$bcvars[[length(s$bcvars) + 1]] <- parent
+          }
+        }
+        for (bcvar in .flinkREnv$broadcast) {
+          if (bcvar$other$id == child$id) {
+            bcvar$other <- parent
+          }
+        }
+        # child sinks now belong to the parent
+        chprint("check sinks")
+        for (sink in child$sinks) {
+          sink$parent <- parent
+          parent$sinks[[length(parent$sinks) + 1]] <- sink
+        }
+        # child broadcast variables now belong to the parent
+        chprint("rewire bradcast vars")
+        for (bcvar in child$bcvars) {
+          bcvar$parent <- parent
+          parent$bcvars[[length(parent$bcvars) + 1]] <- bcvar
+        }
+        # remove child set as it has been merged into the parent
+        chprint("remove child")
+        parent$children <- parent$children[sapply(parent$children, function(x) x$id) != child$id]
+        .remove_set(child)
+      }
+    }
+  x <- x - 1
+  }
+}
+
+.remove_set <- function(set){
+  ### TODO
+  .flinkREnv$sets <- .flinkREnv$sets[sapply(.flinkREnv$sets, function(x) x$id) != set$id]
+}
+#############################################
 .send_plan <- function() {
   print("send plan")
   .send_parameters()
@@ -188,37 +302,50 @@ flink.collect <- function(func, local=TRUE) {
   collect(length(.flinkREnv$sources)+length(.flinkREnv$sets)
           +length(.flinkREnv$sinks)+length(.flinkREnv$broadcast))
   for(source in .flinkREnv$sources) {
+    chprint("send source")
     .send_operation(source)
   }
   for(set in .flinkREnv$sets) {
+    chprint("send set")
     .send_operation(set)
   }
   for(sink in .flinkREnv$sinks) {
+    chprint("send sink")
     .send_operation(sink)
   }
   for(bc in .flinkREnv$broadcast) {
+    chprint("send broadcast")
     .send_operation(bc)
   }
 }
 
 .send_operation <- function(op) {
-  print("send operation")
   collect <- .flinkREnv$coll$collect
   collect(op$identifier)
-  if (is.null(op$parent))
+  chprint(paste(">>> identifier:",op$identifier))
+  if (is.null(op$parent)) {
     collect(as.integer(-1))
-  else
+  } else {
+    chprint(paste("parentID",op$parent$id))
     collect(as.integer(op$parent$id))
-  if (is.null(op$other))
+  }
+  if (is.null(op$other)) {
     collect(as.integer(-1))
-  else
+  } else {
+    chprint(paste("otherID",op$other$id))
     collect(as.integer(op$other$id))
+  }
   collect(op$field)
   collect(op$order)
+  chprint(paste("keys",op$keys))
   collect(op$keys)
+  chprint(paste("key1",op$key1))
   collect(op$key1)
+  chprint(paste("key2",op$key2))
   collect(op$key2)
+  chprint(paste("types",op$types))
   collect(op$types)
+  chprint(paste("udf",op$uses_udf))
   collect(op$uses_udf)
   collect(op$name)
   collect(op$delimiter_line)
@@ -227,7 +354,7 @@ flink.collect <- function(func, local=TRUE) {
   collect(op$path)
   collect(op$frm)
   collect(op$to)
-  #chprint(paste("send id: ", op$id))
+  chprint(paste("id",op$id))
   collect(op$id)
   collect(op$to_err)
   collect(op$count)

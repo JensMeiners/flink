@@ -33,6 +33,14 @@ Identifier.PARTITION_HASH <- "partition_hash"
 Identifier.REBALANCE <- "rebalance"
 
 createArrayTypeInfo <- function() {
-  return(array(charToRaw("b")))
+  return(array(charToRaw("byte")))
 }
 
+createKeyValueTypeInfo <- function(keyCount){
+  key <- list(sapply(1:keyCount, function(x) createArrayTypeInfo()))
+  class(key) <- "list"
+  val <- createArrayTypeInfo()
+  result <- list(key, val)
+  class(result) <- "list"
+  return(result)
+}

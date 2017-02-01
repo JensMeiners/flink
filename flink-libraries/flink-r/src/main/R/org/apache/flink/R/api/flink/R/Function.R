@@ -28,8 +28,10 @@ Function <- function() {
   }
 
   c$.close <- function() {
+    chprint("close collector")
     c$.collector$.close()
     if (is.null(c$.conn) == FALSE) {
+      chprint("close connection")
       c$.conn$close()
     }
   }
@@ -54,6 +56,7 @@ configure.Function <- function(obj, input_file, output_file, port, info, subtask
   obj$.collector <- Collector(obj$.conn, info)
   obj$context <- RuntimeContext(obj$.iterator, obj$.collector, subtask_index)
   if (is.null(info$chained_info) == FALSE) {
+    chprint("chained info configuration")
     info$chained_info$operator$.configure_chain(obj$context, obj$.collector, info$chained_info)
     obj$.collector <- info$chained_info$operator
   }

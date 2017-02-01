@@ -93,7 +93,7 @@ TCPMappedFileConnection <- function(input_file, output_file, port) {
 
   c$write <- function(msg) {
     chprint(paste("con write ",msg))
-    len <- length(msg)
+    len <- length(unlist(msg))
     if (len > MAPPED_FILE_SIZE) {
       stop("Serialized object does not fit into a single buffer.")
     }
@@ -109,8 +109,16 @@ TCPMappedFileConnection <- function(input_file, output_file, port) {
 
   c$.write_buffer <- function() {
     #c$.file_output_buffer[1]
-    chprint(paste("c.out ", c$.out))
+    chprint(paste("mapped file size", MAPPED_FILE_SIZE))
+    chprint(paste("c.out class", class(c$.out)))
+    if (class(c$.out) == "list") {
+      c$.out <- unlist(c$.out)
+    }
+    
+    chprint("c.out ")
+    print(c$.out)
     c$.file_output_buffer[1:MAPPED_FILE_SIZE] <- c$.out
+    
     chprint(paste(".out_size: ",c$.out_size))
     #writeBin(as.integer(c$.out_size), c$con$get(), size=4, endian="big")
     writeInt(c$con$get(), c$.out_size)
@@ -154,7 +162,8 @@ TCPMappedFileConnection <- function(input_file, output_file, port) {
     chprint(paste0("was last: ", c$.was_last))
     if (c$.input_size > 0) {
       c$.input <- c$.file_input_buffer[1:c$.input_size]
-      chprint(paste(".input: ", c$.input))
+      chprint(".input: ")
+      print(c$.input)
     }
     chprint("fin read_buffer")
   }

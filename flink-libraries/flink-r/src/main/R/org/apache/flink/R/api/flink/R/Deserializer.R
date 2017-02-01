@@ -65,13 +65,14 @@ deserializer.desList <- function(num, read) {
     } else {
       c$.skip <- length(c$deserializer)
     }
-    i <- 1
-    result <- c()
-    for (i in 1:length(c$deserializer)) {
-      result <- append(result, c$deserializer[[i]](read))
-      i <- i+1
-    }
-    chprint(paste("result", result))
+    result <- lapply(c$deserializer, function(deser) deser(read))
+    #i <- 1
+    #result <- c()
+    #for (i in 1:length(c$deserializer)) {
+    #  result <- append(result, c$deserializer[[i]](read))
+    #  i <- i+1
+    #}
+    chprint(paste("result", result, "class", class(result)))
     return(result)
   }
   return(c)
@@ -98,7 +99,7 @@ KeyValueDeserializer <- function(key_des, val_des) {
       fields[[length(fields)+1]] <- des(read)
     }
     read(1)
-    return(c(fields, c$v_des(read)))
+    return(list(fields, c$v_des(read)))
   }
   class(c) <- "KeyValueDeserializer"
   return(c)
@@ -111,7 +112,9 @@ readInt <- function(con) {
 }
 
 readLong <- function(con) {
-  readBin(con, integer(), n = 8, endian = "big")[[2]]
+  x <- readBin(con, integer(), n = 8, endian = "big")[[2]]
+  chprint(paste("readLong class", class(x)))
+  return(x)
 }
 
 readString <- function(con) {
