@@ -28,7 +28,7 @@ under the License.
 	<includeBaseDirectory>true</includeBaseDirectory>
 	<baseDirectory>flink-${project.version}</baseDirectory>
 
-	<!-- Include flink-python.jar in lib/ -->
+	<!-- Include flink-python.jar, flink-r.jar in lib/ -->
 	<dependencySets>
 		<dependencySet>
 			<outputDirectory>lib</outputDirectory>
@@ -40,6 +40,21 @@ under the License.
 
 			<includes>
 				<include>org.apache.flink:flink-python_2.10</include>
+				<include>org.slf4j:slf4j-log4j12</include>
+				<include>log4j:log4j</include>
+			</includes>
+		</dependencySet>
+
+		<dependencySet>
+			<outputDirectory>lib</outputDirectory>
+			<unpack>false</unpack>
+			<useTransitiveDependencies>true</useTransitiveDependencies>
+			<useProjectArtifact>false</useProjectArtifact>
+			<useProjectAttachments>false</useProjectAttachments>
+			<useTransitiveFiltering>true</useTransitiveFiltering>
+
+			<includes>
+				<include>org.apache.flink:flink-r_2.10</include>
 				<include>org.slf4j:slf4j-log4j12</include>
 				<include>log4j:log4j</include>
 			</includes>
@@ -171,6 +186,13 @@ under the License.
 		<fileSet>
 			<directory>../flink-libraries/flink-python/src/main/python/org/apache/flink/python/api</directory>
 			<outputDirectory>resources/python</outputDirectory>
+			<fileMode>0755</fileMode>
+		</fileSet>
+
+		<!-- copy R package -->
+		<fileSet>
+			<directory>../flink-libraries/flink-r/src/main/R/org/apache/flink/R/api</directory>
+			<outputDirectory>resources/R</outputDirectory>
 			<fileMode>0755</fileMode>
 		</fileSet>
 	</fileSets>
