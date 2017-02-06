@@ -11,14 +11,14 @@ print(paste0("working directory: ", wd))
 splits <- strsplit(wd, "/")[[1]]
 path <- "/"
 for (split in splits) {
-    if (split != "flink") {
+    if (split != "flink-libraries") {
         path <- paste0(path, "/", split)
     } else {
         break
     }
 }
 print(paste0("flink path: ", path))
-input <- flink.read_text(paste0(path, "/flink/flink-libraries/flink-r/src/test/Resources/lorem_ipsum.txt"))
+input <- flink.read_text(paste0(path, "/flink-libraries/flink-r/src/test/Resources/lorem_ipsum.txt"))
 #input <- flink.distribute(text)
 
 
