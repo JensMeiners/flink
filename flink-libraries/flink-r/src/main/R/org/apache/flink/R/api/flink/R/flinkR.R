@@ -11,6 +11,7 @@ increment_counter <- function() {
 .flinkREnv$dop <- as.integer(-1)
 .flinkREnv$local_mode <- TRUE
 .flinkREnv$retry <- as.integer(0)
+.flinkREnv$output_path <- "./output"
 
 # sets
 .flinkREnv$sources <- list()
@@ -48,6 +49,27 @@ flink.from_elements <- function(input) {
   child_set <- DataSet(child)
   child$identifier <- Identifier.SOURCE_VALUE
   child$values <- input
+  .sources_append(child)
+  return(child_set)
+}
+
+flink.read_csv <- function(path, types, line_delimiter="\n", field_delimiter=",") {
+  child <- newOperationInfo()
+  child_set <- DataSet(child)
+  child$identifier <- Identifier.SOURCE_CSV
+  child$delimiter_line <- line_delimiter
+  child$delimiter_field <- field_delimiter
+  child$path <- path
+  child$types <- types
+  .sources_append(child)
+  return(child_set)
+}
+
+flink.read_text <- function(path) {
+  child <- newOperationInfo()
+  child_set <- DataSet(child)
+  child$identifier <- Identifier.SOURCE_TEXT
+  child$path <- path
   .sources_append(child)
   return(child_set)
 }

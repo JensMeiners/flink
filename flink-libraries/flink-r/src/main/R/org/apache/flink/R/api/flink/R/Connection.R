@@ -161,7 +161,11 @@ TCPMappedFileConnection <- function(input_file, output_file, port) {
     c$.was_last <- meta_size[5] == SIGNAL_LAST
     chprint(paste0("was last: ", c$.was_last))
     if (c$.input_size > 0) {
-      c$.input <- c$.file_input_buffer[1:c$.input_size]
+      if (c$.input_size > MAPPED_FILE_SIZE) {
+        c$.input <- c$.file_input_buffer[1:MAPPED_FILE_SIZE]
+      } else {
+        c$.input <- c$.file_input_buffer[1:c$.input_size]
+      }
       chprint(".input: ")
       print(c$.input)
     }

@@ -44,3 +44,10 @@ createKeyValueTypeInfo <- function(keyCount){
   class(result) <- "list"
   return(result)
 }
+
+BOOL <- TRUE
+INT <- as.integer(1)
+LONG <- as.integer(1)
+FLOAT <- as.numeric(2.5)
+STRING <- "type"
+BYTE <- createArrayTypeInfo()

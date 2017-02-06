@@ -4,6 +4,7 @@ library(flink)
 
 print("found flink library")
 
+
 ## Flink connection - setup the number of threads
 x <- flink.setParallelism(4)
 

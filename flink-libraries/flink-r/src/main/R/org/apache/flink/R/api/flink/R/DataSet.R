@@ -165,7 +165,7 @@ DataSet <- function(info) {
     return(child_set)
   }
   
-  nc$csv_output <- function(path="./output.txt", line_delimiter="\n", field_delimiter=",", write_mode=WriteMode.OVERWRITE) {
+  nc$csv_output <- function(path=.flinkREnv$output_path, line_delimiter="\n", field_delimiter=",", write_mode=WriteMode.OVERWRITE) {
     return(nc$map(Stringify())$.csv_output(path, line_delimiter, field_delimiter, write_mode))
   }
 
