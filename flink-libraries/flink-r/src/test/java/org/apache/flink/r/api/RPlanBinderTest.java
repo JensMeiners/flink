@@ -21,7 +21,7 @@ public class RPlanBinderTest extends JavaProgramTestBase {
 	@Override
 	public void testJobWithoutObjectReuse() throws Exception {}
 
-	private static String[] whitelist = {"ngram_file.R"};
+	private static String[] whitelist = {"word_count_file.R"};
 
 	private static List<String> findTestFiles() throws Exception {
 		List<String> files = new ArrayList<>();
