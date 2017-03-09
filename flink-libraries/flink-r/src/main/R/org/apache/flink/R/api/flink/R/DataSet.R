@@ -89,7 +89,7 @@ DataSet <- function(info) {
       key <- list(key)
     }
     mapping <- function(x) {
-      print(paste("MAPPINGin: ", x))
+      #print(paste("MAPPINGin: ", x))
       return(x)
     }
     nc$map(mapping)$.group_by(key)
@@ -177,8 +177,7 @@ OperatorSet <- function(info) {
   dc <- DataSet(info)
 
   dc$with_broadcast_set <- function(name, set) {
-    # TODO
-    print("not yet implemented")
+    #print("not yet implemented")
   }
 
   class(dc) <- c("OperatorSet", "DataSet")

@@ -19,7 +19,7 @@ Connection <- function(port)
     while(isOpen(nc$con)) {
       readBin(nc$con, raw(), n=1)
     }
-    print("close connection")
+    #print("close connection")
     close(nc$con)
   }
 

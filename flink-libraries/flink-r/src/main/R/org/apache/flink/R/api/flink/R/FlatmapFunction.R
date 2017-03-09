@@ -1,13 +1,13 @@
 FlatmapFunction <- function()
 {
-  chprint("init FlatmapFunction")
+  #chprint("init FlatmapFunction")
   c <- Function()
   
   c$.configure <- function(input_file, output_file, port, info, subtask_index) {}
   
   c$.run <- function() {
-    chprint("flatmapfunc .run")
-    chprint(paste0("FlatmapFunction .run scope: ", class(c)))
+    #chprint("flatmapfunc .run")
+    #chprint(paste0("FlatmapFunction .run scope: ", class(c)))
     while (c$.iterator$has_next()) {
       val <- c$.iterator$nxt()
       result <- c$flatmap(val)
@@ -30,7 +30,7 @@ FlatmapFunction <- function()
   }
   
   c$flatmap <- function(operator) {
-    print("FlatmapFunction.flatmap()")
+    #print("FlatmapFunction.flatmap()")
     return(NULL)
   }
   

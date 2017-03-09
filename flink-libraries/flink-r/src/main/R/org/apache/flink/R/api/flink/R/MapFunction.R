@@ -20,7 +20,7 @@ MapFunction <- function()
   }
 
   c$map <- function(operator) {
-    print("MapFunction.map()")
+    #print("MapFunction.map()")
   }
 
   class(c) <- c("MapFunction", "Function")

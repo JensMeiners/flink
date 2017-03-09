@@ -1,13 +1,13 @@
 FilterFunction <- function()
 {
-  chprint("init FilterFunction")
+  #chprint("init FilterFunction")
   c <- Function()
   
   c$.configure <- function(input_file, output_file, port, info, subtask_index) {}
   
   c$.run <- function() {
-    chprint("filterfunc .run")
-    chprint(paste0("FilterFunction .run scope: ", class(c)))
+    #chprint("filterfunc .run")
+    #chprint(paste0("FilterFunction .run scope: ", class(c)))
     while (c$.iterator$has_next()) {
       val <- c$.iterator$nxt()
       if (c$filter(val)) {
@@ -24,7 +24,7 @@ FilterFunction <- function()
   }
   
   c$filter <- function(operator) {
-    print("FilterFunction.filter()")
+    #print("FilterFunction.filter()")
   }
   
   class(c) <- c("FilterFunction", "Function")
@@ -32,13 +32,13 @@ FilterFunction <- function()
 }
 
 run.FilterFunction <- function(obj) {
-  chprint("filterfunc .run")
+  #chprint("filterfunc .run")
   while (obj$.iterator$has_next()) {
     val <- obj$.iterator$nxt()
-    chprint("got next val")
+    #chprint("got next val")
     if (obj$filter(val)) {
       obj$.collector$collect(val)
-      chprint("collected val")
+      #chprint("collected val")
     }
   }
   obj$.close()

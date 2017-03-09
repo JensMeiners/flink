@@ -109,7 +109,7 @@ flink.groupBy <- function(dataset, key){
 .flinkREnv$runID <- sample(10:99, 1)
 
 chprint <- function(s) {
-  print(paste0("[",.flinkREnv$runID,"] ",s))
+  #print(paste0("[",.flinkREnv$runID,"] ",s))
 }
 
 # USED ONLY FOR DEBUGGING

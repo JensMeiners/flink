@@ -15,7 +15,7 @@ GroupReduceFunction <- function()
   nc$.run <- function() {}
   
   nc$.run_all_group_reduce <- function() {
-    chprint("run all group reduce")
+    #chprint("run all group reduce")
     collector <- nc$.collector
     func <- nc$reduce
     iterator <- nc$.iterator
@@ -46,7 +46,7 @@ GroupReduceFunction <- function()
   }
   
   nc$reduce <- function(iterator, collector) {
-    print("ReduceGroupFunction.reduce()")
+    #print("ReduceGroupFunction.reduce()")
   }
   
   nc$combine <- function(iterator, collector) {
@@ -58,6 +58,6 @@ GroupReduceFunction <- function()
 }
 
 run.GroupReduceFunction <- function(obj) {
-  chprint("groupreducefunc .run")
+  #chprint("groupreducefunc .run")
   obj$.run()
 }

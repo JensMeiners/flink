@@ -4,7 +4,7 @@ PlanIterator <- function(connection)
   nc$connection <- connection$get()
 
   nc$nxt <- function() {
-    print("iterate plan")
+    #print("iterate plan")
     deser <- .get_deserializer(nc$connection$read)
     deser(nc$connection$read)
   }

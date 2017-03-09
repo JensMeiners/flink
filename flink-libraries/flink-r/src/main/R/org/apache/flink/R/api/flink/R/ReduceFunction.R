@@ -55,7 +55,7 @@ ReduceFunction <- function()
   }
 
   nc$reduce <- function(val1, val2) {
-    print("ReduceFunction.reduce()")
+    #print("ReduceFunction.reduce()")
   }
 
   nc$combine <- function(val1, val2) {
