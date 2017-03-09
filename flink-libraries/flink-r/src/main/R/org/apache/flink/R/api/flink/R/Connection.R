@@ -82,6 +82,7 @@ TCPMappedFileConnection <- function(input_file, output_file, port) {
   c$.input_offset <- 0
   c$.input_size <- 0
   c$.was_last <- FALSE
+  c$.part <- 0
 
   c$close <- function() {
     c$con$close_con()
@@ -150,9 +151,14 @@ TCPMappedFileConnection <- function(input_file, output_file, port) {
     writeInt(c$con$get(), SIGNAL_BUFFER_REQUEST)
     c$.file_input_buffer[1]
     c$.input_offset <- 0
-    test <- rawToNum(readBin(c$con$get(), raw(), n = 4))
-    chprint(paste0("test: ", test))
-
+    
+    if (c$.part == 0) {
+      testin <- readBin(c$con$get(), raw(), n = 4)
+      chprint(paste0("testin: ", testin))
+      test <- rawToNum(testin)
+      chprint(paste0("test: ", test))
+    }
+    c$.part <- c$.part + 1 
     meta_size <- recv_all(c$con$get(), 5)
     chprint(meta_size)
     chprint(meta_size[1:4])
