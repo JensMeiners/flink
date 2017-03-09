@@ -34,30 +34,30 @@ Iterator <- function(con, group=0) {
   c$.size <- 0
 
   c$.read <- function(des_size) {
-    chprint(paste0("c$.read ", des_size))
+    #chprint(paste0("c$.read ", des_size))
     return(c$.con$read(des_size))
   }
 
   c$nxt <- function() {
-    chprint("iter nxt")
+    #chprint("iter nxt")
     if (c$has_next()) {
       read <- c$.read
       if (is.null(c$.deserializer)) {
         type <- read(1)
-        chprint(paste0("got type ", type))
+        #chprint(paste0("got type ", type))
         if (type == TYPE_ARRAY) {
-          chprint("iter type array")
+          #chprint("iter type array")
           key_des <- .get_deserializer(read)
-          chprint("got deserializer")
+          #chprint("got deserializer")
           c$.deserializer <- ArrayDeserializer(key_des)
-          chprint("as array deserializer")
+          #chprint("as array deserializer")
           val <- key_des(read)
-          chprint(paste("got val: ",val,"class", class(val)))
+          #chprint(paste("got val: ",val,"class", class(val)))
           return(val)
         } else if (type == TYPE_KEY_VALUE){
-          chprint("iter type key val")
+          #chprint("iter type key val")
           size <- rawToNum(read(1))
-          chprint(paste("got size", size))
+          #chprint(paste("got size", size))
           key_des <- list()
           keys <- list()
           for (i in 1:size) {
@@ -70,7 +70,7 @@ Iterator <- function(con, group=0) {
           c$.deserializer <- KeyValueDeserializer(key_des, val_des)
           return(list(keys, val))
         } else if (type == TYPE_VALUE_VALUE) {
-          chprint("iter type val val")
+          #chprint("iter type val val")
           des1 <- .get_deserializer(read)
           field1 <- des1$deserialize(read)
           des2 <- .get_deserializer(read)
@@ -78,7 +78,7 @@ Iterator <- function(con, group=0) {
           c$.deserializer <- ValueValueDeserializer(des1, des2)
           return(c(field1, field2))
         } else {
-          chprint(paste0("invalid iter type: ", type))
+          #chprint(paste0("invalid iter type: ", type))
           stop(paste0("Invalid type ID encountered: ",type))
         }
       }
@@ -89,7 +89,7 @@ Iterator <- function(con, group=0) {
   }
 
   c$has_next <- function() {
-    chprint("iterator has_next")
+    #chprint("iterator has_next")
     return(c$.con$has_next(c$.group))
   }
 
@@ -106,7 +106,7 @@ GroupIterator <- function(iterator, keys=NULL) {
   c$iterator <- iterator
   c$key <- NULL
   c$keys <- keys
-  chprint(paste("GroupIter keys", keys))
+  #chprint(paste("GroupIter keys", keys))
   if (is.null(keys)) {
     c$.extract_keys <- c$.extract_keys_id
   }
@@ -114,7 +114,7 @@ GroupIterator <- function(iterator, keys=NULL) {
   c$empty <- FALSE
   
   c$.init <- function() {
-    chprint("init group iterator")
+    #chprint("init group iterator")
     if (c$iterator$has_next()) {
       c$empty <- FALSE
       c$cur <- c$iterator$nxt()
@@ -122,22 +122,22 @@ GroupIterator <- function(iterator, keys=NULL) {
     } else {
       c$empty <- TRUE
     }
-    chprint("finished init")
+    #chprint("finished init")
   }
   
   c$nxt <- function() {
     if (c$has_next()) {
       tmp <- c$cur
-      chprint(paste("GroupIter_tmp", tmp, class(tmp)))
+      #chprint(paste("GroupIter_tmp", tmp, class(tmp)))
       if (c$iterator$has_next()) {
-        chprint("GroupIter_has_next")
+        #chprint("GroupIter_has_next")
         c$cur <- c$iterator$nxt()
         if (c$key[[1]] != c$.extract_keys(c$cur)[[1]]) {
-          chprint("GroupIter_isEmpty")
+          #chprint("GroupIter_isEmpty")
           c$empty <- TRUE
         }
       } else {
-        chprint("GroupIter_not_has_next")
+        #chprint("GroupIter_not_has_next")
         c$cur <- NULL
         c$empty <- TRUE
       }
@@ -151,8 +151,8 @@ GroupIterator <- function(iterator, keys=NULL) {
     if (c$empty) {
       return(FALSE)
     }
-    chprint(paste("groupiter.has_next key", c$key, class(c$key)))
-    chprint(paste("groupiter.has_next extract_key", c$.extract_keys(c$cur), class(c$.extract_keys(c$cur))))
+    #chprint(paste("groupiter.has_next key", c$key, class(c$key)))
+    #chprint(paste("groupiter.has_next extract_key", c$.extract_keys(c$cur), class(c$.extract_keys(c$cur))))
     return(c$key[[1]] == c$.extract_keys(c$cur)[[1]])
   }
   

@@ -1,11 +1,11 @@
 Function <- function() {
-  chprint("init Function")
+  #chprint("init Function")
 
   c <- new.env()
 
   c$.configure <- function(input_file, output_file, port, info, subtask_index) {
-    chprint("Function .configure")
-    chprint(paste0("context: ", class(c)))
+    #chprint("Function .configure")
+    #chprint(paste0("context: ", class(c)))
     c$.conn <- TCPMappedFileConnection(input_file, output_file, port)
     c$.iterator <- Iterator(c$.conn)
     c$.collector <- Collector(c$.conn, info)
@@ -14,7 +14,7 @@ Function <- function() {
       info$chained_info$operator$.configure_chain(c$context, c$.collector, info$chained_info)
       c$.collector <- info$chained_info$operator
     }
-    chprint(paste0("Function .configure scope: ",class(c)))
+    #chprint(paste0("Function .configure scope: ",class(c)))
   }
 
   c$.configure_chain <- function(context, collector, info) {
@@ -28,10 +28,10 @@ Function <- function() {
   }
 
   c$.close <- function() {
-    chprint("close collector")
+    #chprint("close collector")
     c$.collector$.close()
     if (is.null(c$.conn) == FALSE) {
-      chprint("close connection")
+      #chprint("close connection")
       c$.conn$close()
     }
   }
@@ -50,13 +50,13 @@ configure <- function(obj, input_file, output_file, port, info, subtask_index) {
 }
 
 configure.Function <- function(obj, input_file, output_file, port, info, subtask_index) {
-  chprint("Function .configure")
+  #chprint("Function .configure")
   obj$.conn <- TCPMappedFileConnection(input_file, output_file, port)
   obj$.iterator <- Iterator(obj$.conn)
   obj$.collector <- Collector(obj$.conn, info)
   obj$context <- RuntimeContext(obj$.iterator, obj$.collector, subtask_index)
   if (is.null(info$chained_info) == FALSE) {
-    chprint("chained info configuration")
+    #chprint("chained info configuration")
     info$chained_info$operator$.configure_chain(obj$context, obj$.collector, info$chained_info)
     obj$.collector <- info$chained_info$operator
   }

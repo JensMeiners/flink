@@ -22,7 +22,7 @@ Grouping <- function(info, child_chain) {
   }
   
   c$reduce_group <- function(operator, combinalble=FALSE) {
-    chprint("reduce_group")
+    #chprint("reduce_group")
     child <- c$.reduce_group(operator, combinalble)
     child_set <- OperatorSet(child)
     c$.info$parallelism <- child$parallelism
@@ -105,7 +105,7 @@ UnsortedGrouping <- function(info, child_chain) {
       f <- function(x) sapply(keys, function(key) x[[key+1]])
     }
     grouping$parent$operator$map <- function(x) {
-      chprint(paste("finalize input",x,"class",class(x)))
+      #chprint(paste("finalize input",x,"class",class(x)))
       list(f(x), as.list(x))
     }
     grouping$parent$types <- createKeyValueTypeInfo(length(keys))

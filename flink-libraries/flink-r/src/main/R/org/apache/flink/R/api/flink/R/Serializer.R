@@ -1,8 +1,8 @@
 serializer.write_type_info <- function(val, con) {
   type <- serializer.getType(val)
-  chprint(paste("type",type,"val",val))
+  #chprint(paste("type",type,"val",val))
   if (type == "list") {
-    chprint(paste("list len", length(val)))
+    #chprint(paste("list len", length(val)))
     writeBin(as.raw(length(val)), con)
     for(v in val) {
       serializer.write_type_info(v, con)
@@ -80,7 +80,7 @@ serializer.write_value <- function(object, con) {
 
 serializer.get_serializer <- function(value, c_types) {
   type <- serializer.getType(value)
-  chprint(paste("get_serializer for ", value, "type",type))
+  #chprint(paste("get_serializer for ", value, "type",type))
   result <- switch(type,
                    NULL = desNull,
                    "integer" = serializer.serLong,
@@ -91,7 +91,7 @@ serializer.get_serializer <- function(value, c_types) {
                    "raw" = desRaw,
                    "list" = serializer.serList(value)$serialize,
                    stop(paste("Unsupported type for serialization", type)))
-  #chprint(paste("got serializer result",result))
+  ##chprint(paste("got serializer result",result))
   return(result)
 }
 
@@ -136,7 +136,7 @@ KeyValuePairSerializer <- function(value, c_types) {
   c$.typeV_length <- length(c$.typeV)
 
   c$serialize <- function(value) {
-    chprint("KeyVal Serializer")
+    #chprint("KeyVal Serializer")
     size <- length(value[[1]])
     bits <- list(rev(numToRaw(size, nBytes = 4))[4])
     for (i in 1:size) {
@@ -157,7 +157,7 @@ KeyValuePairSerializer <- function(value, c_types) {
 }
 
 ArraySerializer <- function(value, c_types) {
-  #chprint("constr ArraySer")
+  ##chprint("constr ArraySer")
   c <- new.env()
   c$serialize <- function(value) {
     ser_value <- c$.serializer(value)
@@ -168,7 +168,7 @@ ArraySerializer <- function(value, c_types) {
   c$.type_length <- length(c$.type)
   c$.serializer <- serializer.get_serializer(value, c_types)
 
-  #chprint("fin constr ArraySer")
+  ##chprint("fin constr ArraySer")
 
   class(c) <- "ArraySerializer"
   return(c)
@@ -181,15 +181,15 @@ serializer.serList <- function(value) {
     c$serializer[[length(c$serializer)+1]] <- serializer.get_serializer(v, NULL)
   }
   c$serialize <- function(value) {
-    chprint(paste("listSer:", value))
+    #chprint(paste("listSer:", value))
     i <- 1
     result <- c()
     for (v in value) {
-      chprint(paste("val:",v))
+      #chprint(paste("val:",v))
       result <- append(result, c$serializer[[i]](v))
       i <- i+1
     }
-    chprint(paste("result", result))
+    #chprint(paste("result", result))
     return(result)
   }
   return(c)
@@ -204,7 +204,7 @@ serializer.serInt <- function(value) {
 }
 
 serializer.serChar <- function(value) {
-  chprint(paste("serChar:",value))
+  #chprint(paste("serChar:",value))
   utfVal <- enc2utf8(value)
   return(c(serializer.serInt(nchar(utfVal)), charToRaw(utfVal)))
 }
@@ -248,9 +248,9 @@ writeArray <- function(con, arr) {
   #size <- length(arr)
   writeInt(con, length(arr))
   #writeBin(size, con, size=4, useBytes = TRUE, endian = "big")
-  chprint(paste("arr:",arr,"class",class(arr)))
+  #chprint(paste("arr:",arr,"class",class(arr)))
   for (val in arr) {
-    chprint(paste("val:",class(val)))
+    #chprint(paste("val:",class(val)))
     writeBin(val, con, size=1, useBytes = TRUE)
   }
 }

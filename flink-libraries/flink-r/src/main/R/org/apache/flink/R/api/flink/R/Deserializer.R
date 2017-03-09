@@ -1,18 +1,18 @@
 deserializer.desInt <- function(read) {
-  chprint("des Int")
+  #chprint("des Int")
   val <- read(4)
-  chprint(paste("desInt: ", val))
+  #chprint(paste("desInt: ", val))
   readInt(val)
 }
 deserializer.desLong <- function(read) {
-  chprint("des Long")
+  #chprint("des Long")
   val <- read(8)
-  chprint(paste("desLong: ", val))
+  #chprint(paste("desLong: ", val))
   readLong(val)
 }
 
 deserializer.desString <- function(read) {
-  chprint("des String")
+  #chprint("des String")
   size <- readInt(read(4))
   val <- enc2utf8(rawToChar(read(size)))
   return(val)
@@ -21,10 +21,10 @@ deserializer.desString <- function(read) {
 
 .get_deserializer <- function(read) {
   library(pack)
-  chprint("get_deserializer")
+  #chprint("get_deserializer")
   #type <- as.integer(readBin(con, "raw", n = 1L))
   type <- read(1)
-  chprint(paste("des type: ", type))
+  #chprint(paste("des type: ", type))
   
   ord <- rawToNum(type)
   if (ord < 26) {
@@ -51,7 +51,7 @@ deserializer.desString <- function(read) {
 }
 
 deserializer.desList <- function(num, read) {
-  chprint("deserialize List")
+  #chprint("deserialize List")
   c <- new.env()
   c$deserializer <- list()
   for (v in 1:num){
@@ -59,7 +59,7 @@ deserializer.desList <- function(num, read) {
   }
   c$.skip <- 0
   c$deserialize <- function(read) {
-    chprint(paste("listDeser"))
+    #chprint(paste("listDeser"))
     if (c$.skip > 0) {
       read(c$.skip) # skip type info
     } else {
@@ -72,7 +72,7 @@ deserializer.desList <- function(num, read) {
     #  result <- append(result, c$deserializer[[i]](read))
     #  i <- i+1
     #}
-    chprint(paste("result", result, "class", class(result)))
+    #chprint(paste("result", result, "class", class(result)))
     return(result)
   }
   return(c)
@@ -113,7 +113,7 @@ readInt <- function(con) {
 
 readLong <- function(con) {
   x <- readBin(con, integer(), n = 8, endian = "big")[[2]]
-  chprint(paste("readLong class", class(x)))
+  #chprint(paste("readLong class", class(x)))
   return(x)
 }
 

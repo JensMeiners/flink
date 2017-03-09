@@ -15,7 +15,7 @@ ReduceFunction <- function()
   nc$.run <- function() {}
 
   nc$.run_all_reduce <- function() {
-    chprint("run all reduce")
+    #chprint("run all reduce")
     collector <- nc$.collector
     func <- nc$reduce
     iterator <- nc$.iterator
@@ -24,7 +24,7 @@ ReduceFunction <- function()
       while (iterator$has_next()) {
         value <- iterator$nxt()
         base <- func(base, value)
-        chprint(paste("base: ", base))
+        #chprint(paste("base: ", base))
       }
 
       collector$collect(base)
@@ -33,7 +33,7 @@ ReduceFunction <- function()
   }
 
   nc$.run_grouped_reduce <- function() {
-    chprint("run_grouped_reduce")
+    #chprint("run_grouped_reduce")
     collector <- nc$.collector
     func <- nc$reduce
     iterator <- nc$.group_iterator
@@ -42,11 +42,11 @@ ReduceFunction <- function()
       iterator$next_group()
       if (iterator$has_next()) {
         base <- iterator$nxt()
-        chprint(paste("grouped_reduce start base", base))
+        #chprint(paste("grouped_reduce start base", base))
         while (iterator$has_next()) {
           value <- iterator$nxt()
           base <- func(base, value)
-          chprint(paste("grouped_reduce",base,value))
+          #chprint(paste("grouped_reduce",base,value))
         }
       }
       collector$collect(base)
@@ -67,6 +67,6 @@ ReduceFunction <- function()
 }
 
 run.ReduceFunction <- function(obj) {
-  chprint("redfunc .run")
+  #chprint("redfunc .run")
   obj$.run()
 }

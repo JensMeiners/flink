@@ -30,24 +30,24 @@ Collector <- function(con, info) {
   }
 
   c$collect <- function(value) {
-    chprint(paste("collect identifier:",c$.info$identifier," - ", value))
-    chprint(paste("as type:",c$.info$types))
+    #chprint(paste("collect identifier:",c$.info$identifier," - ", value))
+    #chprint(paste("as type:",c$.info$types))
     if (c$.as_array) {
-      chprint("ArraySer")
+      #chprint("ArraySer")
       c$.serializer <- ArraySerializer(value)
     } else {
-      chprint("KeyValSer")
+      #chprint("KeyValSer")
       c$.serializer <- KeyValuePairSerializer(value)
     }
-    chprint("initialized Serializer")
+    #chprint("initialized Serializer")
     c$collect <- c$.collect
     c$collect(value)
   }
 
   c$.collect <- function(value) {
-    chprint(paste(".collect ", value))
+    #chprint(paste(".collect ", value))
     serialized_value <- c$.serializer$serialize(value)
-    chprint(paste("serialized value ", serialized_value))
+    #chprint(paste("serialized value ", serialized_value))
     c$.con$write(serialized_value)
   }
 

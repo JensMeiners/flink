@@ -97,7 +97,7 @@ DataSet <- function(info) {
   }
   
   nc$.group_by <- function(key) {
-    chprint(paste("DataSet groupby key",key))
+    #chprint(paste("DataSet groupby key",key))
     child <- newOperationInfo()
     child_chain <- list()
     child_set <- UnsortedGrouping(child, child_chain)
@@ -186,7 +186,7 @@ OperatorSet <- function(info) {
 }
 
 Stringify <- function() {
-  chprint("init Stringify")
+  #chprint("init Stringify")
   c <- MapFunction()
 
   c$map <- function(value) {

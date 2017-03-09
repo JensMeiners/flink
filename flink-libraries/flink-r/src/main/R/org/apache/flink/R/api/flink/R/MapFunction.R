@@ -1,13 +1,13 @@
 MapFunction <- function()
 {
-  chprint("init MapFunction")
+  #chprint("init MapFunction")
   c <- Function()
 
   c$.configure <- function(input_file, output_file, port, info, subtask_index) {}
 
   c$.run <- function() {
-    chprint("mapfunc .run")
-    chprint(paste0("MapFunction .run scope: ", class(c)))
+    #chprint("mapfunc .run")
+    #chprint(paste0("MapFunction .run scope: ", class(c)))
     while (c$.iterator$has_next()) {
       val <- c$.iterator$nxt()
       c$.collector$collect(c$map(val))
@@ -32,12 +32,12 @@ run <- function(obj) {
 }
 
 run.MapFunction <- function(obj) {
-  chprint("mapfunc .run")
+  #chprint("mapfunc .run")
   while (obj$.iterator$has_next()) {
     val <- obj$.iterator$nxt()
-    chprint(paste("got next val", val, "class", class(val)))
+    #chprint(paste("got next val", val, "class", class(val)))
     obj$.collector$collect(obj$map(val))
-    chprint("collected val")
+    #chprint("collected val")
   }
   obj$.close()
 }

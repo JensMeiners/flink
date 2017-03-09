@@ -27,7 +27,7 @@ Connection <- function(port)
     nc$con
   }
 
-  chprint("connected")
+  #chprint("connected")
 
   ## Set the name for the class
   class(nc) <- "Connection"
@@ -93,7 +93,7 @@ TCPMappedFileConnection <- function(input_file, output_file, port) {
   }
 
   c$write <- function(msg) {
-    chprint(paste("con write ",msg))
+    #chprint(paste("con write ",msg))
     len <- length(unlist(msg))
     if (len > MAPPED_FILE_SIZE) {
       stop("Serialized object does not fit into a single buffer.")
@@ -110,17 +110,17 @@ TCPMappedFileConnection <- function(input_file, output_file, port) {
 
   c$.write_buffer <- function() {
     #c$.file_output_buffer[1]
-    chprint(paste("mapped file size", MAPPED_FILE_SIZE))
-    chprint(paste("c.out class", class(c$.out)))
+    #chprint(paste("mapped file size", MAPPED_FILE_SIZE))
+    #chprint(paste("c.out class", class(c$.out)))
     if (class(c$.out) == "list") {
       c$.out <- unlist(c$.out)
     }
     
-    chprint("c.out ")
-    print(c$.out)
+    #chprint("c.out ")
+    #print(c$.out)
     c$.file_output_buffer[1:MAPPED_FILE_SIZE] <- c$.out
     
-    chprint(paste(".out_size: ",c$.out_size))
+    #chprint(paste(".out_size: ",c$.out_size))
     #writeBin(as.integer(c$.out_size), c$con$get(), size=4, endian="big")
     writeInt(c$con$get(), c$.out_size)
     c$.out <- c()
@@ -129,20 +129,20 @@ TCPMappedFileConnection <- function(input_file, output_file, port) {
   }
 
   c$read <- function(des_size) {
-    chprint(paste0("des_size: ", des_size))
+    #chprint(paste0("des_size: ", des_size))
     if (c$.input_size == c$.input_offset) {
       c$.read_buffer()
     }
     old_offset <- c$.input_offset + 1
     c$.input_offset <- c$.input_offset + des_size
-    chprint(paste0("input offset:",c$.input_offset," !<= input size:",c$.input_size))
+    #chprint(paste0("input offset:",c$.input_offset," !<= input size:",c$.input_size))
     if (c$.input_offset > c$.input_size) {
-      chprint("BufferUnderflowException")
+      #chprint("BufferUnderflowException")
       stop("BufferUnderFlowException")
     }
-    chprint("fin read")
+    #chprint("fin read")
     result <- c$.input[old_offset:c$.input_offset]
-    chprint(paste("result ",old_offset,":",c$.input_offset," :: ", result))
+    #chprint(paste("result ",old_offset,":",c$.input_offset," :: ", result))
     return(result)
   }
 
@@ -154,43 +154,43 @@ TCPMappedFileConnection <- function(input_file, output_file, port) {
     
     if (c$.part == 0) {
       testin <- readBin(c$con$get(), raw(), n = 4)
-      chprint(paste0("testin: ", testin))
+      #chprint(paste0("testin: ", testin))
       test <- rawToNum(testin)
-      chprint(paste0("test: ", test))
+      #chprint(paste0("test: ", test))
     }
     c$.part <- c$.part + 1 
     meta_size <- recv_all(c$con$get(), 5)
-    chprint(meta_size)
-    chprint(meta_size[1:4])
+    #chprint(meta_size)
+    #chprint(meta_size[1:4])
     c$.input_size <- readBin(meta_size[1:4], integer(), n = 4, endian = "big", signed = FALSE)
-    chprint(paste0("in_size: ", c$.input_size))
+    #chprint(paste0("in_size: ", c$.input_size))
     c$.was_last <- meta_size[5] == SIGNAL_LAST
-    chprint(paste0("was last: ", c$.was_last))
+    #chprint(paste0("was last: ", c$.was_last))
     if (c$.input_size > 0) {
       if (c$.input_size > MAPPED_FILE_SIZE) {
         c$.input <- c$.file_input_buffer[1:MAPPED_FILE_SIZE]
       } else {
         c$.input <- c$.file_input_buffer[1:c$.input_size]
       }
-      chprint(".input: ")
-      print(c$.input)
+      #chprint(".input: ")
+      #print(c$.input)
     }
-    chprint("fin read_buffer")
+    #chprint("fin read_buffer")
   }
 
   c$send_end_signal <- function() {
     if (c$.out_size > 0) {
-      chprint("write out buffer")
+      #chprint("write out buffer")
       c$.write_buffer()
     }
-    chprint("send signal finished")
+    #chprint("send signal finished")
     #writeBin(SIGNAL_FINISHED, c$con$get(), size=4, endian="big")
     writeInt(c$con$get(),SIGNAL_FINISHED)
   }
 
   c$has_next <- function(group = NA) {
     has <- c$.was_last == FALSE | c$.input_size != c$.input_offset
-    chprint(paste("has next: ", has))
+    #chprint(paste("has next: ", has))
     return(has)
   }
 
