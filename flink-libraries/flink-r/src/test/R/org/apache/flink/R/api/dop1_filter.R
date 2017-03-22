@@ -4,7 +4,6 @@ print("filter")
 flink.parallelism(1)
 
 wd <- getwd()
-print(paste0("working directory: ", wd))
 
 splits <- strsplit(wd, "/")[[1]]
 path <- "/"
@@ -27,4 +26,4 @@ filterFunction <- function(elem) {
 
 f <- input$filter(filterFunction)
 res <- flink.collect(f)
-print(res)
+

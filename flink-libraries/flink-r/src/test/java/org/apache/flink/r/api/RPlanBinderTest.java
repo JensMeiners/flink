@@ -44,7 +44,7 @@ public class RPlanBinderTest extends JavaProgramTestBase {
 		for (String file : findTestFiles()) {
 			for (String incl : whitelist) {
 				if (file.endsWith(incl)) {
-					int num = 1;
+					int num = 11;
 					ArrayList results = new ArrayList();
 					for (int i = 0; i < num; i++) {
 						long start = System.currentTimeMillis();

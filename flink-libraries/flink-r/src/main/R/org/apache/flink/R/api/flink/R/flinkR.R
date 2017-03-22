@@ -22,7 +22,7 @@ increment_counter <- function() {
 .flinkREnv$broadcast <- list()
 
 flink.setParallelism <- function(parallelism) {
-  print(paste0("set parallelism: ", parallelism))
+  #print(paste0("set parallelism: ", parallelism))
   .flinkREnv$dop <- as.integer(parallelism)
 }
 flink.parallelism <- function(parallelism) {
@@ -142,13 +142,13 @@ flink.collect <- function(func, local=TRUE) {
   open(f)
   # waiting for std. input
   if (length(line <- readLines(f,n=1)) > 0) {
-    print(paste("read new line: ", line))
+    #print(paste("read new line: ", line))
     # process std. input
     plan_mode <- line == "plan"
 
     if (plan_mode) {
       port <- readLines(f, n=1)
-      print(paste0("received port: ", port))
+      #print(paste0("received port: ", port))
       .flinkREnv$conn <- Connection(port)
       .flinkREnv$iter <- PlanIterator(.flinkREnv$conn)
       .flinkREnv$coll <- PlanCollector(.flinkREnv$conn)
@@ -169,7 +169,7 @@ flink.collect <- function(func, local=TRUE) {
           port <- readLines(f, n=1)
 
           id <- readLines(f, n=1)
-          print(paste0("id: ",id))
+          #print(paste0("id: ",id))
           subtask_index <- readLines(f, n=1)
           input_path <- readLines(f, n=1)
           output_path <- readLines(f, n=1)
@@ -315,24 +315,24 @@ flink.collect <- function(func, local=TRUE) {
 }
 #############################################
 .send_plan <- function() {
-  print("send plan")
+  #print("send plan")
   .send_parameters()
   .send_operations()
 }
 
 .send_parameters <- function() {
-  print("send parameters")
+  #print("send parameters")
   collect <- .flinkREnv$coll$collect
-  print("send dop")
+  #print("send dop")
   collect(list("dop", .flinkREnv$dop))
-  print("send mode")
+  #print("send mode")
   collect(list("mode", .flinkREnv$local_mode))
-  print("send retry")
+  #print("send retry")
   collect(list("retry", .flinkREnv$retry))
 }
 
 .send_operations <- function() {
-  print("send operations")
+  #print("send operations")
   collect <- .flinkREnv$coll$collect
   collect(length(.flinkREnv$sources)+length(.flinkREnv$sets)
           +length(.flinkREnv$sinks)+length(.flinkREnv$broadcast))
@@ -401,6 +401,6 @@ flink.collect <- function(func, local=TRUE) {
 }
 
 .receive_result <- function() {
-  print("receive result")
+  #print("receive result")
   JobExecutionResult(.flinkREnv$iter$nxt())
 }

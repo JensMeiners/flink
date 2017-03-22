@@ -87,6 +87,10 @@ public class RPlanBinder {
 			System.out.println("Usage: ./bin/flinkR.[sh/bat] <pathToScript>[ <pathToPackage1>[ <pathToPackageX]][ - <parameter1>[ <parameterX>]]");
 			return;
 		}
+		if (args[0].equals("-b")) {
+			RBenchmarks.main(args);
+			return;
+		}
 		RPlanBinder binder = new RPlanBinder();
 		binder.runPlan(Arrays.copyOfRange(args, 0, args.length));
 	}

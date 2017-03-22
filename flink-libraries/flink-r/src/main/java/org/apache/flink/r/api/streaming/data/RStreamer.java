@@ -189,7 +189,6 @@ public class RStreamer implements Serializable {
 	}
 
 	private void sendWriteNotification(int size, boolean hasNext) throws IOException {
-		System.out.println("size = " + size + " - " + "hasNext = " + hasNext);
 		out.writeInt(size);
 		out.writeByte(hasNext ? 0 : SIGNAL_LAST);
 		out.flush();
@@ -254,7 +253,6 @@ public class RStreamer implements Serializable {
 								size = sender.sendBuffer(i, 0);
 								sendWriteNotification(size, sender.hasRemaining(0) || i.hasNext());
 							} else {
-								System.out.println("DELETE ME");
 								throw new RuntimeException("External process requested data even though none is available.");
 							}
 							break;
