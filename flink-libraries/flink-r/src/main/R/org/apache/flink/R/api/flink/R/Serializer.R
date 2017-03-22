@@ -138,15 +138,15 @@ KeyValuePairSerializer <- function(value, c_types) {
   c$serialize <- function(value) {
     #chprint("KeyVal Serializer")
     size <- length(value[[1]])
-    bits <- list(rev(numToRaw(size, nBytes = 4))[4])
+    bits <- list(rev(serializer.intToRaw(size))[4])
     for (i in 1:size) {
       x <- c$.serializerK[[i]](value[[1]][i])
-      bits[[length(bits)+1]] <- rev(numToRaw(length(x) + c$.typeK_length[[i]], nBytes=4))
+      bits[[length(bits)+1]] <- rev(serializer.intToRaw(length(x) + c$.typeK_length[[i]]))
       bits[[length(bits)+1]] <- c$.typeK[[i]]
       bits[[length(bits)+1]] <- x
     }
     v <- c$.serializerV(value[[2]])
-    bits[[length(bits)+1]] <- rev(numToRaw(length(v) + c$.typeV_length, nBytes=4))
+    bits[[length(bits)+1]] <- rev(serializer.intToRaw(length(v) + c$.typeV_length))
     bits[[length(bits)+1]] <- c$.typeV
     bits[[length(bits)+1]] <- v
     return(bits)
@@ -162,7 +162,7 @@ ArraySerializer <- function(value, c_types) {
   c$serialize <- function(value) {
     ser_value <- c$.serializer(value)
     size <- length(ser_value) + c$.type_length
-    return(c(rev(numToRaw(size, nBytes = 4)), c$.type, ser_value))
+    return(c(rev(packBits(intToBits(size), type="raw")), c$.type, ser_value))
   }
   c$.type <- serializer.get_type_info(value, c_types)
   c$.type_length <- length(c$.type)
@@ -196,11 +196,17 @@ serializer.serList <- function(value) {
 }
 
 serializer.serLong <- function(value) {
-  return(rev(numToRaw(value, nBytes = 8)))
+  bytes <- raw(8)
+  bytes[1:4] <- serializer.intToRaw(value)
+  return(rev(bytes))
 }
 
 serializer.serInt <- function(value) {
-  return(rev(numToRaw(value, nBytes = 4)))
+  return(rev(serializer.intToRaw(value)))
+}
+
+serializer.intToRaw <- function(value) {
+  return(packBits(intToBits(value), type="raw"))
 }
 
 serializer.serChar <- function(value) {

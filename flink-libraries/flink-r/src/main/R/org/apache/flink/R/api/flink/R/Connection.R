@@ -75,7 +75,7 @@ TCPMappedFileConnection <- function(input_file, output_file, port) {
   c$port <- port
   c$con <- Connection(port)
 
-  c$.out <- c()
+  c$.out <- vector(mode="raw", length=MAPPED_FILE_SIZE)
   c$.out_size <- 0
 
   c$.input <- ""
@@ -89,7 +89,8 @@ TCPMappedFileConnection <- function(input_file, output_file, port) {
   }
 
   c$.out_append <- function(o) {
-    c$.out <- c(c$.out, o)
+    size <- length(o)
+    c$.out[c$.out_size+1:size+1] <- o[1:size+1]
   }
 
   c$write <- function(msg) {
@@ -100,15 +101,24 @@ TCPMappedFileConnection <- function(input_file, output_file, port) {
     }
     tmp <- c$.out_size + len
     if (tmp > MAPPED_FILE_SIZE) {
+      #start <- as.numeric(Sys.time())
       c$.write_buffer()
+      #end <- as.numeric(Sys.time())
+      #chprint(paste0("+,ser result -> write ser -> .write_buffer,",toString(end-start),","))
+      
       c$write(msg)
     } else {
+      #start <- as.numeric(Sys.time())
       c$.out_append(msg)
+      #end <- as.numeric(Sys.time())
+      #chprint(paste0("+,ser result -> write ser -> .out_append,",toString(end-start),","))
+      
       c$.out_size <- tmp
     }
   }
 
   c$.write_buffer <- function() {
+    #chprint("write buffer")
     #c$.file_output_buffer[1]
     #chprint(paste("mapped file size", MAPPED_FILE_SIZE))
     #chprint(paste("c.out class", class(c$.out)))
@@ -118,14 +128,20 @@ TCPMappedFileConnection <- function(input_file, output_file, port) {
     
     #chprint("c.out ")
     #print(c$.out)
-    c$.file_output_buffer[1:MAPPED_FILE_SIZE] <- c$.out
+    #chprint("write to file")
+    c$.file_output_buffer[1:c$.out_size+1] <- c$.out[1:c$.out_size+1]
+    #chprint("wrote to file")
+    #chprint(c$.out[1:c$.out_size+1])
     
     #chprint(paste(".out_size: ",c$.out_size))
     #writeBin(as.integer(c$.out_size), c$con$get(), size=4, endian="big")
     writeInt(c$con$get(), c$.out_size)
-    c$.out <- c()
+    #chprint("wrote size")
+    c$.out <- vector(mode="raw", length=MAPPED_FILE_SIZE)
     c$.out_size <- 0
+    #chprint("cleared out vec")
     recv_all(c$con$get(), 1)
+    #chprint("end write buffer")
   }
 
   c$read <- function(des_size) {

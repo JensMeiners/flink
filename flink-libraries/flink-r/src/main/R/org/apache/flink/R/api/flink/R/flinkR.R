@@ -109,7 +109,7 @@ flink.groupBy <- function(dataset, key){
 .flinkREnv$runID <- sample(10:99, 1)
 
 chprint <- function(s) {
-  #print(paste0("[",.flinkREnv$runID,"] ",s))
+  print(paste0("[",.flinkREnv$runID,"] ",s))
 }
 
 # USED ONLY FOR DEBUGGING
@@ -160,6 +160,12 @@ flink.collect <- function(func, local=TRUE) {
     } else {
       out <- tryCatch(
         {
+          #Rprof(NULL)
+          #profOutFileName="glm.out"
+          #DotFileName="glm.dot"
+          #callGraphFileName='glm.callgraph'
+          #Rprof(profOutFileName)
+
           port <- readLines(f, n=1)
 
           id <- readLines(f, n=1)
@@ -189,6 +195,13 @@ flink.collect <- function(func, local=TRUE) {
           operator$.close()
           #chprint("console .flush")
           flush.console()
+
+          #Rprof(NULL)
+          #library("proftools")
+          #pd <-readProfileData(profOutFileName)
+          #printProfileCallGraph(pd, callGraphFileName)
+          #profileCallGraph2Dot(pd, filename = DotFileName, score="total")
+          #chprint(summaryRprof(profOutFileName))
         },
         error=function(cond) {
           stop(cond)

@@ -21,7 +21,7 @@ public class RPlanBinderTest extends JavaProgramTestBase {
 	@Override
 	public void testJobWithoutObjectReuse() throws Exception {}
 
-	private static String[] whitelist = {"word_count_file.R"};
+	private static String[] whitelist = {"dop1_filter.R"};
 
 	private static List<String> findTestFiles() throws Exception {
 		List<String> files = new ArrayList<>();
@@ -43,8 +43,19 @@ public class RPlanBinderTest extends JavaProgramTestBase {
 		outerloop:
 		for (String file : findTestFiles()) {
 			for (String incl : whitelist) {
-				if (file.endsWith(incl))
-					RPlanBinder.main(new String[]{file});
+				if (file.endsWith(incl)) {
+					int num = 1;
+					ArrayList results = new ArrayList();
+					for (int i = 0; i < num; i++) {
+						long start = System.currentTimeMillis();
+						RPlanBinder.main(new String[]{file});
+						long end = System.currentTimeMillis();
+						results.add(end - start);
+					}
+					System.out.println(file);
+					results.remove(0);
+					System.out.println(results);
+				}
 			}
 		}
 	}

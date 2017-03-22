@@ -1,43 +1,51 @@
 FilterFunction <- function()
 {
   #chprint("init FilterFunction")
-  c <- Function()
+  d <- Function()
   
-  c$.configure <- function(input_file, output_file, port, info, subtask_index) {}
+  d$.configure <- function(input_file, output_file, port, info, subtask_index) {}
   
-  c$.run <- function() {
+  d$.run <- function() {
     #chprint("filterfunc .run")
-    #chprint(paste0("FilterFunction .run scope: ", class(c)))
-    while (c$.iterator$has_next()) {
-      val <- c$.iterator$nxt()
-      if (c$filter(val)) {
-        c$.collector$collect(val)
+    while (d$.iterator$has_next()) {
+      val <- d$.iterator$nxt()
+      if (d$filter(val)) {
+        d$.collector$collect(val)
       }
     }
-    c$.collector$.close()
+    d$.collector$.close()
   }
   
-  c$collect <- function(value) {
-    if (c$filter(value)) {
-      c$.collector$collect(value)
+  d$collect <- function(value) {
+    if (d$filter(value)) {
+      d$.collector$collect(value)
     }
   }
   
-  c$filter <- function(operator) {
+  d$filter <- function(operator) {
     #print("FilterFunction.filter()")
   }
   
-  class(c) <- c("FilterFunction", "Function")
-  return(c)
+  class(d) <- c("FilterFunction", "Function")
+  return(d)
 }
 
 run.FilterFunction <- function(obj) {
   #chprint("filterfunc .run")
   while (obj$.iterator$has_next()) {
+    #start <- as.numeric(Sys.time())
     val <- obj$.iterator$nxt()
+    #end <- as.numeric(Sys.time())
+    #chprint(paste0("+,deser input,",toString(end-start),","))
     #chprint("got next val")
+    #start <- as.numeric(Sys.time())
     if (obj$filter(val)) {
+      #end <- as.numeric(Sys.time())
+      #chprint(paste0("+,filter,",toString(end-start),","))
+      #start <- as.numeric(Sys.time())
       obj$.collector$collect(val)
+      #end <- as.numeric(Sys.time())
+      #chprint(paste0("+,ser result,",toString(end-start),","))
       #chprint("collected val")
     }
   }

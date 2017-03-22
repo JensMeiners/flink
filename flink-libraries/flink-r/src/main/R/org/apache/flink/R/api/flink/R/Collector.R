@@ -46,9 +46,16 @@ Collector <- function(con, info) {
 
   c$.collect <- function(value) {
     #chprint(paste(".collect ", value))
+    #start <- as.numeric(Sys.time())
     serialized_value <- c$.serializer$serialize(value)
+    #end <- as.numeric(Sys.time())
+    #chprint(paste0("+,ser result -> ser value,",toString(end-start),","))
+    
     #chprint(paste("serialized value ", serialized_value))
+    #start <- as.numeric(Sys.time())
     c$.con$write(serialized_value)
+    #end <- as.numeric(Sys.time())
+    #chprint(paste0("+,ser result -> write ser,",toString(end-start),","))
   }
 
   class(c) <- "Collector"
