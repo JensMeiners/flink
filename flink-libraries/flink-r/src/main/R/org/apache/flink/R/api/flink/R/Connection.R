@@ -88,9 +88,8 @@ TCPMappedFileConnection <- function(input_file, output_file, port) {
     c$con$close_con()
   }
 
-  c$.out_append <- function(o) {
-    size <- length(o)
-    c$.out[c$.out_size+1:size+1] <- o[1:size+1]
+  c$.out_append <- function(o, size) {
+    c$.out[c$.out_size+1:c$.out_size+size] <- o
   }
 
   c$write <- function(msg) {
@@ -109,7 +108,7 @@ TCPMappedFileConnection <- function(input_file, output_file, port) {
       c$write(msg)
     } else {
       #start <- as.numeric(Sys.time())
-      c$.out_append(msg)
+      c$.out_append(msg, len)
       #end <- as.numeric(Sys.time())
       #chprint(paste0("+,ser result -> write ser -> .out_append,",toString(end-start),","))
       
@@ -129,7 +128,7 @@ TCPMappedFileConnection <- function(input_file, output_file, port) {
     #chprint("c.out ")
     #print(c$.out)
     #chprint("write to file")
-    c$.file_output_buffer[1:c$.out_size+1] <- c$.out[1:c$.out_size+1]
+    c$.file_output_buffer[1:c$.out_size] <- c$.out[1:c$.out_size]
     #chprint("wrote to file")
     #chprint(c$.out[1:c$.out_size+1])
     
