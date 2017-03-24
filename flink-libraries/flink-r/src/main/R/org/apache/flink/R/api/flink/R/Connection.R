@@ -35,9 +35,11 @@ Connection <- function(port)
 }
 
 recv_all <- function(con, toread) {
+  #chprint("begin recv")
   initial <- readBin(con, raw(), n = toread, endian="big", signed = FALSE)
   bytes_read = length(initial)
   if (bytes_read == toread) {
+    #chprint("end initial recv")
     return(initial)
   } else {
     bits <- list(initial)
@@ -47,6 +49,7 @@ recv_all <- function(con, toread) {
       bits[[length(bits)+1]] <- bit
       toread = toread - length(bit)
     }
+    #chprint("end recv")
     return(paste(bits, sep = '', collapse = ''))
   }
 }
@@ -58,6 +61,7 @@ SIGNAL_BUFFER_REQUEST_G0 <- -3
 SIGNAL_BUFFER_REQUEST_G1 <- -4
 SIGNAL_FINISHED <- -1
 SIGNAL_LAST <- 32
+
 
 TCPMappedFileConnection <- function(input_file, output_file, port) {
   library(mmap)
@@ -89,7 +93,9 @@ TCPMappedFileConnection <- function(input_file, output_file, port) {
   }
 
   c$.out_append <- function(o, size) {
-    c$.out[c$.out_size+1:c$.out_size+size] <- o
+    s <- c$.out_size+1
+    e <- c$.out_size+size
+    c$.out[s:e] <- o
   }
 
   c$write <- function(msg) {
@@ -114,10 +120,12 @@ TCPMappedFileConnection <- function(input_file, output_file, port) {
       
       c$.out_size <- tmp
     }
+    #chprint(paste0("out_size ",c$.out_size))
   }
 
   c$.write_buffer <- function() {
     #chprint("write buffer")
+    #start <- as.numeric(Sys.time())
     #c$.file_output_buffer[1]
     #chprint(paste("mapped file size", MAPPED_FILE_SIZE))
     #chprint(paste("c.out class", class(c$.out)))
@@ -140,7 +148,10 @@ TCPMappedFileConnection <- function(input_file, output_file, port) {
     c$.out_size <- 0
     #chprint("cleared out vec")
     recv_all(c$con$get(), 1)
+    
+    #end <- as.numeric(Sys.time())
     #chprint("end write buffer")
+    #chprint(paste0("+,write buffer,",toString(end-start),","))
   }
 
   c$read <- function(des_size) {
