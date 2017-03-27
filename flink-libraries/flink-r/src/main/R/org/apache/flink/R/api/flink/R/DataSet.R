@@ -189,7 +189,7 @@ Stringify <- function() {
   c <- MapFunction()
 
   c$map <- function(value) {
-    return(toString(value))
+    return(as.character(value))
   }
 
   class(c) <- c("Stringify", "MapFunction", "Function")
