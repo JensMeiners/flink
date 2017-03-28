@@ -160,7 +160,7 @@ flink.collect <- function(func, local=TRUE) {
     } else {
       out <- tryCatch(
         {
-          #Rprof(NULL)
+         # Rprof(NULL)
           #profOutFileName="glm.out"
           #DotFileName="glm.dot"
           #callGraphFileName='glm.callgraph'
@@ -203,8 +203,11 @@ flink.collect <- function(func, local=TRUE) {
           #profileCallGraph2Dot(pd, filename = DotFileName, score="total")
           #chprint(summaryRprof(profOutFileName))
         },
-        error=function(cond) {
-          stop(cond)
+        error=function(e) {
+          e <<- e
+          cat("ERROR: ", e$message, "\nin ")
+          print(e$call)
+          stop(e)
           flush.console()
           conn <- NA
           if (exists("port")) {
